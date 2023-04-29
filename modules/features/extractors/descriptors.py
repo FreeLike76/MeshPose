@@ -23,23 +23,23 @@ except:
     logger.info("OpenCV-Contrib not installed. Some feature descriptors will not be available.")
 
 class Descriptor:
-    def __init__(self, type:str, params:dict={}, verbose:bool=False) -> None:
-        assert type in DESCRIPTORS.keys(), f"Descriptor type {type} not available. Use one of {DESCRIPTORS.keys()}"
+    def __init__(self, algorithm:str, params:dict={}, verbose:bool=False) -> None:
+        assert algorithm in DESCRIPTORS.keys(), f"Descriptor algorithmrithm {algorithm} not available. Use one of {DESCRIPTORS.keys()}"
         
-        self.type = type
+        self.algorithm = algorithm
         self.params = deepcopy(params)
         self.verbose = verbose
         
-        self.descriptor = DESCRIPTORS[type].create(**params)
-        if self.verbose: logger.info(f"Created {self.type} descriptor.")
+        self.descriptor = DESCRIPTORS[algorithm].create(**params)
+        if self.verbose: logger.info(f"Created {self.algorithm} descriptor.")
     
     def descript(self, image:np.ndarray, keypoints):
-        if self.verbose: logger.info(f"Computing {self.type} descriptors.")
+        if self.verbose: logger.info(f"Computing {self.algorithm} descriptors.")
         
         # Compute descriptors
         desc = self.descriptor.compute(image, keypoints)
         # If root sirf -> process
-        if self.type == "ROOT_SIFT" and desc is not None:
+        if self.algorithm == "ROOT_SIFT" and desc is not None:
             desc = desc / (desc.sum(axis=1, keepdims=True) + 1e-6)
             desc = np.sqrt(desc)
   

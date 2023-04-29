@@ -20,18 +20,18 @@ except:
     logger.info("OpenCV-Contrib not installed. Some feature detectors will not be available.")
 
 class Detector:
-    def __init__(self, type:str, params:dict={}, verbose:bool=False) -> None:
-        assert type in DETECTORS.keys(), f"Detector type {type} not available. Use one of {DETECTORS.keys()}"
+    def __init__(self, algorithm:str, params:dict={}, verbose:bool=False) -> None:
+        assert algorithm in DETECTORS.keys(), f"Detector algorithmrithm {algorithm} not available. Use one of {DETECTORS.keys()}"
         
-        self.type = type
+        self.algorithm = algorithm
         self.params = deepcopy(params)
         self.verbose = verbose
         
-        self.detector = DETECTORS[type].create(**params)
-        if self.verbose: logger.info(f"Created {self.type} detector.")
+        self.detector = DETECTORS[algorithm].create(**params)
+        if self.verbose: logger.info(f"Created {self.algorithm} detector.")
     
     def detect(self, image):
-        if self.verbose: logger.info(f"Detecting {self.type} features.")
+        if self.verbose: logger.info(f"Detecting {self.algorithm} features.")
         kp = self.detector.detect(image)
         if self.verbose: logger.info(f"Detected {len(kp)} features.")
         
