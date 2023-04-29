@@ -23,7 +23,7 @@ except:
     logger.info("OpenCV-Contrib not installed. Some feature descriptors will not be available.")
 
 class Descriptor:
-    def __init__(self, type:str, params:dict={}, verbose:bool=False):
+    def __init__(self, type:str, params:dict={}, verbose:bool=False) -> None:
         assert type in DESCRIPTORS.keys(), f"Descriptor type {type} not available. Use one of {DESCRIPTORS.keys()}"
         
         self.type = type

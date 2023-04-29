@@ -20,7 +20,7 @@ except:
     logger.info("OpenCV-Contrib not installed. Some feature detectors will not be available.")
 
 class Detector:
-    def __init__(self, type:str, params:dict={}, verbose:bool=False):
+    def __init__(self, type:str, params:dict={}, verbose:bool=False) -> None:
         assert type in DETECTORS.keys(), f"Detector type {type} not available. Use one of {DETECTORS.keys()}"
         
         self.type = type
