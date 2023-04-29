@@ -10,7 +10,7 @@ import detectors
 import descriptors
 
 class FeatureExtractor:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
     
     def __call__(self, image:np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
@@ -32,7 +32,7 @@ class ClassicalExtractor(FeatureExtractor):
 
 # TODO: Implement this
 class SilkFeatureExtractor(FeatureExtractor):
-    def __init__(self, checkpoints_p:Path, device:str="cpu", verbose:bool=False):
+    def __init__(self, checkpoints_p:Path, device:str="cpu", verbose:bool=False) -> None:
         assert checkpoints_p.exists() and checkpoints_p.is_file(), f"Checkpoints file {checkpoints_p} does not exist!"
         
         # Load model, etc
