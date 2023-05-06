@@ -33,15 +33,16 @@ class Descriptor:
         self.descriptor = DESCRIPTORS[algorithm].create(**params)
         if self.verbose: logger.info(f"Created {self.algorithm} descriptor.")
     
-    def descript(self, image:np.ndarray, keypoints):
+    def describe(self, image:np.ndarray, keypoints):
         if self.verbose: logger.info(f"Computing {self.algorithm} descriptors.")
         
         # Compute descriptors
-        desc = self.descriptor.compute(image, keypoints)
+        kp, des = self.descriptor.compute(image, keypoints)
+        
         # If root sirf -> process
-        if self.algorithm == "ROOT_SIFT" and desc is not None:
-            desc = desc / (desc.sum(axis=1, keepdims=True) + 1e-6)
-            desc = np.sqrt(desc)
+        if self.algorithm == "ROOT_SIFT" and des is not None:
+            des = des / (des.sum(axis=1, keepdims=True) + 1e-6)
+            des = np.sqrt(des)
   
-        if self.verbose: logger.info(f"Computed {len(desc)} descriptors")
-        return desc
+        if self.verbose: logger.info(f"Computed {len(des)} descriptors")
+        return kp, des

@@ -4,7 +4,7 @@ from copy import deepcopy
 from loguru import logger
 
 DETECTORS = {
-    "GFFT": cv2.GFTTDetector,
+    "GFTT": cv2.GFTTDetector,
     "FAST": cv2.FastFeatureDetector,
     "ORB": cv2.ORB,
     "SIFT": cv2.SIFT,
