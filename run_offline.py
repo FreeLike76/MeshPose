@@ -7,7 +7,7 @@ from pathlib import Path
 
 from modules.project import ProjectMeta
 from modules.preprocess import preprocess
-from modules.features.extractor import ClassicalExtractor, SilkFeatureExtractor
+from modules.features.extractors import ClassicalExtractor, SilkFeatureExtractor
 
 def main(data_p: Path, verbose: bool = False):
     # Load project

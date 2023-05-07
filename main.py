@@ -2,15 +2,15 @@ import cv2
 import numpy as np
 
 from modules import utils
-from modules.features import extractor, detectors, descriptors
+from modules.features import detectors, descriptors, extractors
 
 image = cv2.imread("data/test.png")
 image = utils.resize_image(image, 512)
 
-print("detectors", detectors.DETECTORS)
-print("descriptors", descriptors.DESCRIPTORS)
+print("detectors", detectors.DEFINED_DETECTORS)
+print("descriptors", descriptors.DEFINED_DESCRIPTORS)
 
-pipeline = extractor.ClassicalExtractor(detector="SIFT", descriptor="SIFT", verbose=True)
+pipeline = extractors.ClassicalExtractor(detector="SIFT", descriptor="SIFT", verbose=True)
 
 kp, des = pipeline(image)
 

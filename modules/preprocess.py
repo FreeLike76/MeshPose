@@ -8,7 +8,7 @@ from loguru import logger
 from typing import List
 
 from . import core, io, utils
-from .features.extractor import FeatureExtractor
+from .features.extractors import FeatureExtractor
 from .project import ProjectMeta
 from .raycaster import RayCaster
 from .data import PresetARView, FrameDescription

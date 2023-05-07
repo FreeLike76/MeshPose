@@ -11,11 +11,23 @@ from datetime import datetime
 import logging
 from loguru import logger
 
+
+class Serializable:
+    def to_json(self) -> dict:
+        raise NotImplementedError("Serializable is an abstract class. Use a concrete implementation instead.")
+    
+    @staticmethod
+    def from_json(json:dict):
+        raise NotImplementedError("Serializable is an abstract class. Use a concrete implementation instead.")
+
+
 class Vebsosity:
     def __init__(self, level:int=0) -> None:
         self.level = level
+    
     def __call__(self, req:int) -> bool:
         return self.level >= req
+
 
 def resize_image(img: np.ndarray, size: int):
     # Get current dimensions
