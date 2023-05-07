@@ -43,7 +43,7 @@ class ClassicalExtractor(FeatureExtractor):
             f"Created feature extractor with {self.detector.algorithm} " +
             f"detector and {self.descriptor.algorithm} descriptor.")
     
-    def __call__(self, image: np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
+    def extract(self, image: np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
         kp = self.detector.detect(image)
         kp, des = self.descriptor.describe(image, kp)
         return kp, des

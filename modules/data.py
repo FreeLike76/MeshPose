@@ -4,6 +4,7 @@ import numpy as np
 from typing import List, Tuple
 from pathlib import Path
 
+from . import io
 
 def rotate_arkit(extrinsics):
     rotation = np.array([[1, 0, 0, 0],
@@ -52,9 +53,15 @@ class ARCamera:
         return f'ArCamera: pose {self._transform.tolist()}, intrs {self._intrinsics.tolist()}'
 
 class FrameDescription:
-    def __init__(self, keypoints_2d_cv: Tuple[cv2.KeyPoint], 
+    def __init__(self,
+                 keypoints_2d_np: np.ndarray = None,
+                 keypoints_2d_cv: Tuple[cv2.KeyPoint] = None,
                  descriptors: np.ndarray = None,
                  keypoints_3d: np.ndarray = None):
+        
+        # TODO: resolve this
+        assert keypoints_2d_cv is not None or keypoints_2d_np is not None, 'Either keypoints_2d_cv or keypoints_2d_np must be provided'
+        
         if not (len(keypoints_2d_cv) == 0 and descriptors is None):
             assert len(keypoints_2d_cv) == len(descriptors)
 
@@ -128,78 +135,35 @@ class FrameDescription:
         return _copy
 
 class ARView:
-    def __init__(self, index: int, p_image: str, camera: ARCamera = None, p_depth: str = None, rotate_img=False):
-        self._index = index
-        self._p_image = str(p_image) if isinstance(p_image, Path) else p_image
-        self._camera = camera
-        self._p_depth = p_depth
-
+    def __init__(self, name: str, p_image: str, camera: ARCamera = None, rotate_img=False):
+        self.name = name
+        self.p_image = str(p_image) if isinstance(p_image, Path) else p_image
+        self.camera = camera
         self._rotate_img = rotate_img
-
-        if p_image is not None:
-            print(self._p_image)
-            self._image = cv2.imread(self._p_image)
-            if self._rotate_img:
-                self._image = cv2.rotate(self._image, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        else:
-            self._image = None
-
-        self._depth: np.ndarray = None
-
-        self._description: FrameDescription = None
-
-    @property
-    def index(self) -> int:
-        return self._index
+        self.description: FrameDescription = None
 
     @property
     def image(self) -> np.ndarray:
-        return self._image
+        # TODO: rewrite with io
+        image = cv2.imread(self._p_image)
+        if self._rotate_img:
+            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        return image
 
     @property
-    def gray(self) -> np.ndarray:
+    def image_gray(self) -> np.ndarray:
         return cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
-    @property
-    def depth(self) -> np.ndarray:
-        if self._depth is None:
-            raise ValueError('This object does not contain a depth map')
-        return self._depth
-
-    @property
-    def camera(self) -> ARCamera:
-        if self._camera is None:
-            raise ValueError('This object does not contain camera properties')
-        return self._camera
-
-    @property
-    def description(self) -> FrameDescription:
-        return self._description
-
-    @description.setter
-    def description(self, descp: FrameDescription):
-        self._description = descp
-
-    def __str__(self):
-        return f'{self.__class__} index: {self.index}: image: {self._p_image}, depth: {self._p_depth}, camera: {self._camera is not None}'
-
+    def reset(self):
+        self.description = None
 
 class PresetARView(ARView):
-    def __init__(self, index: int, p_image: str, camera: ARCamera = None, p_depth: str = None):
-        super().__init__(index, p_image, camera, p_depth)
-
+    def __init__(self, name: str, p_image: str, camera: ARCamera = None):
+        super().__init__(name, p_image, camera)
 
 class QueryARView(ARView):
-    def __init__(self, index: int, p_image: str, camera: ARCamera = None, p_depth: str = None):
-        super().__init__(index, p_image, camera, p_depth)
-
-    @property
-    def depth(self):
-        raise ValueError('QueryFrame does not contain a depth map')
-
-    def __str__(self):
-        return f'{self.__class__} index: {self.index}: image: {self._p_image}, camera: {self._camera is not None}'
-
+    def __init__(self, p_image: str, camera: ARCamera = None):
+        super().__init__("query", p_image, camera)
 
 class ViewsMatch:
     def __init__(self, query_view: ARView, preset_view: ARView) -> None:

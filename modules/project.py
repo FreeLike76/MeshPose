@@ -5,7 +5,9 @@ from glob import glob
 from pathlib import Path
 from typing import List
 
-class Project:
+from . import io
+
+class ProjectMeta:
     def __init__(self, data_p: Path, verbose: bool = False) -> None:
         # Init params
         self.data_p: Path = data_p
@@ -45,9 +47,7 @@ class Project:
         
         # Try loading if present
         try:
-            # Load json
-            with open(meta_p, "r") as f:
-                meta_dict = json.load(f)
+            meta_dict = io.load_json(meta_p)
             # Parse
             self.processed_features_meta = meta_dict["processed_features"]
             self.keyframe_names = meta_dict["keyframe_names"]
@@ -69,11 +69,13 @@ class Project:
     def get_frame_json_p(self, name:str) -> str:
         return self.get_frame_json_p_template().format(name)
     
+    def get_mesh_p(self) -> str:
+        return str(self.data_p / "textured_output.obj")
+    
     def _parse_frame_name(self, path: str) -> str:
         """
         Get frame name from json path.
         """
-        
         filename = Path(path).stem
         keyframe_name = filename.split("_")[-1]
         return keyframe_name
@@ -114,3 +116,11 @@ class Project:
     
     def add_processed_features_meta(self, feature_extractors:dict):
         self.processed_features_meta.append(feature_extractors)
+
+    def get_processed_features_meta_init(self) -> dict:
+        # TODO: go over all feature extractors and get the init features
+        pass
+    
+    def get_processed_features_meta_track(self) -> dict:
+        # TODO: go over all feature extractors and get the track
+        pass

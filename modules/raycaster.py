@@ -7,8 +7,8 @@ from typing import List, Tuple
 from copy import deepcopy
 
 class RayCaster:
-    def __init__(self) -> None:
-        self.mesh = None
+    def __init__(self, mesh:o3d.geometry.TriangleMesh = None) -> None:
+        self.mesh = mesh
         self.intrinsics = None
         self.extrinsics = None
         self.height = None
@@ -31,7 +31,7 @@ class RayCaster:
     def set_extrinsics(self, extrinsics:np.ndarray):
         self.extrinsics = extrinsics
     
-    def cast_rays(self, pts:np.ndarray=None) -> Tuple[np.ndarray, np.ndarray]:
+    def cast(self, pts:np.ndarray=None) -> Tuple[np.ndarray, np.ndarray]:
         # Init rays
         rays = o3d.t.geometry.RaycastingScene.create_rays_pinhole(
             self.intrinsics, self.extrinsics, self.width, self.height)

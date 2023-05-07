@@ -1,37 +1,35 @@
 import cv2
 import numpy as np
-import pandas as pd
+import open3d as o3d
 
 from tqdm import tqdm
 from loguru import logger
 
 from typing import List
 
-from . import io, utils
+from . import core, io, utils
 from .features.extractor import FeatureExtractor
-from .project import Project
+from .project import ProjectMeta
+from .raycaster import RayCaster
+from .data import PresetARView, FrameDescription
 
-def preprocess(project: Project,
+def preprocess(project: ProjectMeta,
                feature_extractors: List[FeatureExtractor],
                verbose: bool = False):
     """
-    Scan a dataset and extract features from all images.
+    Init project and extract features from all images.
     """
+    # Load project data
+    preset_views: List[PresetARView] = core.load_preset_views(project)
+    mesh: o3d.geometry.TriangleMesh = io.load_mesh(project.get_mesh_p())
+    raycaster = RayCaster(mesh)
     
     for extractor_i, extractor in enumerate(feature_extractors):
-        # TODO: load intrinsics & mesh
-        
-        # Create list of preset views
-        preset_views: List[preset_views] = []
-        for frame_i, frame_name in enumerate(project.keyframe_names):
-            # Get paths
-            frame_p = project.get_frame_p(frame_name)
-            frame_json_p = project.get_frame_json_p(frame_name)
+        for pv in preset_views:
+            # Delete old features
+            pv.reset()
             
-            # Load image and json
-            frame = io.load_image(frame_p)
-            frame_json = io.load_json(frame_json_p)
-            
-            kp, des = extractor(frame)
-            
+            kp, des = extractor(pv.image)
+            frame_des = FrameDescription(keypoints_2d_cv=kp, descriptors=des)
+            pv.description = frame_des
     return 
