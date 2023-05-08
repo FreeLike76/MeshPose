@@ -21,7 +21,10 @@ class ProjectMeta:
             if self.verbose: logger.info(f"Loaded project metadata from {self.data_p.name}.")
         else:
             if self.verbose: logger.info(f"Initializing project metadata for {self.data_p.name}.")
+            # Scan frames
             self.keyframes_list = self.scan_keyframe_names(self.data_p, verbose=self.verbose)
+            # Create project folder
+            self.get_project_p().mkdir(parents=True, exist_ok=True)
     
     def save(self):
         # Create meta dict
@@ -31,7 +34,7 @@ class ProjectMeta:
         }
         
         # Init save dir if not present
-        save_dir = self.data_p / "mesh_pose"
+        save_dir = self.get_project_p()
         save_dir.mkdir(parents=True, exist_ok=True)
         save_p = save_dir / "meta.json"
         
@@ -41,7 +44,7 @@ class ProjectMeta:
     
     def load(self) -> int:
         # Validate project folder
-        meta_p = self.data_p / "mesh_pose" / "meta.json"
+        meta_p = self.get_project_p() / "meta.json"
         if not meta_p.exists() or not meta_p.is_file():
             return False
         
@@ -60,17 +63,20 @@ class ProjectMeta:
     def get_frame_p_template(self) -> str:
         return str(self.data_p / "frame_{}.jpg")
     
-    def get_frame_p(self, name:str) -> str:
-        return self.get_frame_p_template().format(name)
+    def get_frame_p(self, name:str) -> Path:
+        return Path(self.get_frame_p_template().format(name))
 
     def get_frame_json_p_template(self) -> str:
         return str(self.data_p / "frame_{}.json")
     
-    def get_frame_json_p(self, name:str) -> str:
-        return self.get_frame_json_p_template().format(name)
+    def get_frame_json_p(self, name:str) -> Path:
+        return Path(self.get_frame_json_p_template().format(name))
     
-    def get_mesh_p(self) -> str:
-        return str(self.data_p / "textured_output.obj")
+    def get_mesh_p(self) -> Path:
+        return self.data_p / "textured_output.obj"
+    
+    def get_project_p(self) -> Path:
+        return self.data_p / "mesh_pose"
     
     def _parse_frame_name(self, path: str) -> str:
         """
@@ -114,8 +120,9 @@ class ProjectMeta:
                 logger.warning(f"Failed to parse frame id from {json_p}. Exceotion message: {e}")
         return keyframe_names
     
-    def add_processed_features_meta(self, feature_extractors:dict):
+    def add_processed_features_meta(self, feature_extractors:dict) -> int:
         self.processed_features_meta.append(feature_extractors)
+        return len(self.processed_features_meta) - 1
 
     def get_processed_features_meta_init(self) -> dict:
         # TODO: go over all feature extractors and get the init features

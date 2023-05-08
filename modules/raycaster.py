@@ -2,9 +2,10 @@ import cv2
 import numpy as np
 import open3d as o3d
 
+from copy import deepcopy
 from typing import List, Tuple
 
-from copy import deepcopy
+from .data import ARView
 
 class RayCaster:
     def __init__(self, mesh:o3d.geometry.TriangleMesh = None) -> None:
@@ -30,6 +31,14 @@ class RayCaster:
     
     def set_extrinsics(self, extrinsics:np.ndarray):
         self.extrinsics = extrinsics
+    
+    def set_view(self, view:ARView):
+        """
+        Sets intrinsics and extrinsics from ARView.
+        """
+        h, w = view.image.shape[:2]
+        self.set_intrinsics(view.camera.intrinsics, w, h)
+        self.set_extrinsics(view.camera.extrinsics)
     
     def cast(self, pts:np.ndarray=None) -> Tuple[np.ndarray, np.ndarray]:
         # Init rays
@@ -58,3 +67,8 @@ class RayCaster:
         mask = hit_mask.numpy()
         
         return vertices, mask
+    
+    def cast_view(self, view:ARView) -> Tuple[np.ndarray, np.ndarray]:
+        # TODO: stortcut for casting view's keypoints
+        self.set_view(view)
+        return self.cast()
