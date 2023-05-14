@@ -42,6 +42,25 @@ class RayCaster:
         self.set_intrinsics(view.camera.intrinsics, w, h)
         self.set_extrinsics(view.camera.extrinsics)
     
+    def get_depth_buffer(self) -> np.ndarray:
+        """
+        Returns depth buffer of the scene from the current view.
+        """
+        # Init rays
+        rays = o3d.t.geometry.RaycastingScene.create_rays_pinhole(
+            self.intrinsics, self.extrinsics, self.width, self.height)
+        
+        # Cast rays
+        ans = self.scene.cast_rays(rays)
+        
+        # Get distances, infinity -> -1, reshape back to image
+        distance = ans["t_hit"]
+        distance = distance.numpy().astype(np.float32)
+        distance[~np.isfinite(distance)] = -1
+        distance = distance.reshape((self.height, self.width))
+        
+        return distance
+    
     def run(self, pts:np.ndarray=None) -> Tuple[np.ndarray, np.ndarray]:
         # Init rays
         rays = o3d.t.geometry.RaycastingScene.create_rays_pinhole(
