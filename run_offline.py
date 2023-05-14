@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 
 from modules import io
-from modules.preprocess import preprocess
+from modules.localization import preprocess
 from modules.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
 
 def main(data_p: Path, verbosity: int = False):
@@ -23,7 +23,11 @@ def main(data_p: Path, verbosity: int = False):
     }
     
     # Preprocess dataset
-    preprocess(data, feature_extractors, verbose=verbosity)
+    precomputed_features = preprocess(data, feature_extractors, verbose=verbosity)
+    
+    # Save precomputed features
+    for extractor_name, views_desc in precomputed_features.items():
+        data.save_view_descriptions(extractor_name, views_desc)
 
 def args_parser():
     parser = argparse.ArgumentParser(
