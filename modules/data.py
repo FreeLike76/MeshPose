@@ -91,64 +91,16 @@ class ViewDescription:
             self.keypoints_2d = self.keypoints_2d[mask]
             self.descriptors = self.descriptors[mask]
         keypoints_3d = keypoints_3d[mask]
-    
-    # TODO: where is it used? change to return all values
-    def __getitem__(self, obj) -> Tuple[np.ndarray, np.ndarray]:
-        """
-        Returns keypoint coordinates and the descriptor if integer passed
-        or returns corresponding descriptor in case cv2.KeyPoint was passed
-        """
-        if isinstance(obj, int):
-            return self._keypoints_2d_cv[obj].pt.astype(int), self._descriptors[obj].astype(int),
 
-        elif isinstance(obj, cv2.KeyPoint):
-            idx = self._keypoints_2d_cv.index(obj)
-            return self._descriptors[idx]
+class ViewMatches:
+    def __init__(self, query: ViewDescription, preset: ViewDescription, matches) -> None:
+        # Store references to views
+        self.query = query
+        self.preset = preset
 
-        else:
-            raise Exception(f'Such type {type(obj)} is not supported.')
-
-    def __str__(self) -> str:
-        kp_2d_len = None if self._keypoints_2d_cv is None else len(self._keypoints_2d_cv)
-        ds_len = None if self._descriptors is None else len(self._descriptors)
-        kp_3d_len = None if self._keypoints_3d is None else len(self._keypoints_3d)
-        return f'FrameDescription: points2d-{kp_2d_len}, descriptors2d-{ds_len}, points3d-{kp_3d_len}'
-
-    def __len__(self) -> str:
-        return len(self.keypoints_2d_cv)
-    
-    def __iter__(self):
-        return iter((self._keypoints_2d_cv, self._descriptors, self._keypoints_3d))
-
-    def __deepcopy__(self, memo):
-        id_self = id(self)
-        _copy = memo.get(id_self)
-        if _copy is None:
-            keypoints_2d = (cv2.KeyPoint(angle=k.angle,
-                                         class_id=k.class_id,
-                                         octave=k.octave,
-                                         x=k.pt[0],
-                                         y=k.pt[1],
-                                         response=k.response,
-                                         size=k.size) for k in self._keypoints_2d_cv)
-            descriptors = self._descriptors.copy() if self._descriptors is not None else None
-            keypoints_3d = self._keypoints_3d.copy() if self._keypoints_3d is not None else None
-
-            _copy = type(self)(tuple(keypoints_2d), descriptors, keypoints_3d)
-            memo[id_self] = _copy
-
-        return _copy
-
-class ViewsMatch:
-    def __init__(self, query_view: View, preset_view: View) -> None:
-        self.query_view = query_view
-        self.preset_view = preset_view
-
-        self._query_points2d = None
-        self._preset_points2d = None
-        self._preset_points3d = None
-
-        self._index = -1
+        # Store matches
+        self.query_matches = np.array([m.queryIdx for m in matches], dtype=np.int32)
+        self.preset_matches = np.array([m.trainIdx for m in matches], dtype=np.int32)
 
     @property
     def query_points2d(self):

@@ -4,6 +4,10 @@ import numpy as np
 from copy import deepcopy
 from loguru import logger
 
+from typing import List
+
+from ..data import ViewDescription, ViewMatches
+
 class BaseMatcher:
     def __init__(self,
                  test_ratio:bool=False, test_ratio_th:float=0.7,
@@ -20,7 +24,39 @@ class BaseMatcher:
         # Empty matcher
         self.matcher = None
     
-    def __call__(self, desc1:np.ndarray, desc2:np.ndarray) -> np.ndarray:
+    def _test_ratio(self, matches):
+        good_matches = []
+        for match in matches:
+            m, n = match
+            if m.distance < self.test_ratio_th * n.distance:
+                good_matches.append(m)
+        return good_matches
+    
+    def _test_symmetry(self, matches12, matches21):
+        good_matches = []
+        for match12 in matches12:
+            for match21 in matches21:
+                if match12.queryIdx == match21.trainIdx \
+                    and match12.trainIdx == match21.queryIdx:
+                        good_matches.append(match12)
+        return good_matches
+    
+    def run(self, desc1:np.ndarray, desc2:np.ndarray) -> list:
+        """
+        Performs matching of two sets of descriptors.
+        
+        Parameters:
+        --------
+        desc1: np.ndarray
+            First set of descriptors.
+        desc2: np.ndarray
+            Second set of descriptors.
+        
+        Returns:
+        --------
+        matches: list
+            List of matches.
+        """
         assert self.matcher is not None, logger.error("Matcher is not initialized! Use BFMatcher or FLANNMatcher.")
         
         matches = []
@@ -38,24 +74,53 @@ class BaseMatcher:
         
         if self.verbose: logger.info(f"Detected {len(matches)} matches.")
         return matches
-    
-    def _test_ratio(self, matches):
-        good_matches = []
-        for m, n in matches:
-            if m.distance < self.test_ratio_th * n.distance:
-                good_matches.append(m)
-        return good_matches
-    
-    def _test_symmetry(self, matches12, matches21):
-        good_matches = []
-        for match12 in matches12:
-            for match21 in matches21:
-                if match12.queryIdx == match21.trainIdx \
-                    and match12.trainIdx == match21.queryIdx:
-                        good_matches.append(match12)
-        return good_matches
 
+    def run_view_desc(self, query: ViewDescription, preset: ViewDescription) -> ViewMatches:
+        """
+        Performs pairwise matching of two ViewDescription objects.
+        
+        Parameters:
+        --------
+        query: ViewDescription
+            Query view.
+        preset: ViewDescription
+            Preset view.
+        
+        Returns:
+        --------
+        view_matches: ViewMatches
+            Object containing information about the matches.
+        """
+        # Match descriptors
+        matches = self.run(query.descriptors, preset.descriptors)
+        if len(matches) == 0:
+            return None
+        view_matches = ViewMatches(query.view, preset.view, matches)
+        return view_matches
 
+    def run_views_desc(self, query: ViewDescription, preset: List[ViewDescription]) -> List[ViewMatches]:
+        """
+        Performs pairwise matching of a query ViewDescription object and a list of preset ViewDescription objects.
+        
+        Parameters:
+        --------
+        query: ViewDescription
+            Query view.
+        preset: List[ViewDescription]
+            List of preset views.
+        
+        Returns:
+        --------
+        view_matches: List[ViewMatches]
+            List of objects containing information about the matches.
+        """
+        view_matches: List[ViewMatches] = []
+        for view in preset:
+            matches = self.run_view_desc(query, view)
+            if matches is None: continue
+            view_matches.append(matches)
+        return view_matches
+    
 class BruteForceMatcher(BaseMatcher):
     def __init__(self, params:dict={},
                  test_ratio:bool=False, test_ratio_th:float=0.7,
@@ -68,7 +133,6 @@ class BruteForceMatcher(BaseMatcher):
         # Init matcher
         self.params = deepcopy(params)
         self.matcher = cv2.BFMatcher.create(**self.params)
-
 
 class FlannMatcher(BaseMatcher):
     def __init__(self,
