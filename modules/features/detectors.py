@@ -34,7 +34,7 @@ class Detector(Serializable):
         self.detector = DEFINED_DETECTORS[algorithm].create(**params)
         if self.verbose: logger.info(f"Created {self.algorithm} detector.")
     
-    def detect(self, image):
+    def run(self, image):
         if self.verbose: logger.info(f"Detecting {self.algorithm} features.")
         kp = self.detector.detect(image)
         if self.verbose: logger.info(f"Detected {len(kp)} features.")

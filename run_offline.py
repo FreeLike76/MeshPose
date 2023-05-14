@@ -15,9 +15,9 @@ def main(data_p: Path, verbose: bool = False):
     
     # Create feature extractors
     feature_extractors = [
-        ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbose=verbose),
-        ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbose=verbose),
-        ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbose=verbose),
+        ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
+        ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
     ]
     # Preprocess dataset

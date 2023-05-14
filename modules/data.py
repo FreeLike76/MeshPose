@@ -62,38 +62,25 @@ class QueryView(View):
 
 class FrameDescription:
     def __init__(self,
-                 keypoints_2d_np: np.ndarray = None,
-                 keypoints_2d_cv: Tuple[cv2.KeyPoint] = None,
+                 view: PresetView,
+                 keypoints_2d_cv: List[cv2.KeyPoint] = None,
                  descriptors: np.ndarray = None,
                  keypoints_3d: np.ndarray = None):
-        
-        # TODO: resolve this
-        assert keypoints_2d_cv is not None or keypoints_2d_np is not None, 'Either keypoints_2d_cv or keypoints_2d_np must be provided'
-        
+        # Validate
         if not (len(keypoints_2d_cv) == 0 and descriptors is None):
             assert len(keypoints_2d_cv) == len(descriptors)
-
-        self._keypoints_2d_cv = keypoints_2d_cv
-        self._keypoints_2d = np.asarray([kp.pt for kp in self._keypoints_2d_cv]).astype(int)
-
-        self._descriptors = descriptors
-        self._keypoints_3d = keypoints_3d
-
-    @property
-    def keypoints_2d_cv(self) -> Tuple[cv2.KeyPoint]:
-        return self._keypoints_2d_cv
+        
+        # Reference to the view, for quick access
+        self.view = view
+        
+        # Features
+        self.keypoints_2d_cv = keypoints_2d_cv
+        self.descriptors = descriptors
+        self.keypoints_3d = keypoints_3d
 
     @property
-    def keypoints_2d(self) -> np.ndarray:
-        return self._keypoints_2d
-
-    @property
-    def descriptors(self) -> np.ndarray:
-        return self._descriptors
-
-    @property
-    def keypoints_3d(self) -> np.ndarray:
-        return self._keypoints_3d
+    def keypoints_2d_np(self) -> np.ndarray:
+        return np.asarray([kp.pt for kp in self.keypoints_2d_cv]).astype(int)
 
     # TODO: where is it used? change to return all values
     def __getitem__(self, obj) -> Tuple[np.ndarray, np.ndarray]:
@@ -118,7 +105,7 @@ class FrameDescription:
         return f'FrameDescription: points2d-{kp_2d_len}, descriptors2d-{ds_len}, points3d-{kp_3d_len}'
 
     def __len__(self) -> str:
-        return len(self._keypoints_2d_cv)
+        return len(self.keypoints_2d_cv)
     
     def __iter__(self):
         return iter((self._keypoints_2d_cv, self._descriptors, self._keypoints_3d))

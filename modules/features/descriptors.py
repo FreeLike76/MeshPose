@@ -37,7 +37,7 @@ class Descriptor(Serializable):
         self.descriptor = DEFINED_DESCRIPTORS[algorithm].create(**params)
         if self.verbose: logger.info(f"Created {self.algorithm} descriptor.")
     
-    def describe(self, image:np.ndarray, keypoints):
+    def run(self, image:np.ndarray, keypoints):
         if self.verbose: logger.info(f"Computing {self.algorithm} descriptors.")
         
         # Compute descriptors

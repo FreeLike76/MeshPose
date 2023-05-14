@@ -26,16 +26,12 @@ def preprocess(data: io.DataIOBase,
     
     for extractor_i, extractor in enumerate(feature_extractors):
         KP2D, KP3D, DES = [], [], []
+        
+        descriptions = extractor.run_all(preset_views)
+        
         for pv in preset_views:
             # Delete old features
             #pv.reset()
-            
-            # Get new features
-            kp_cv, des = extractor(pv.image)
-            
-            # To numpy
-            kp_2d = np.asarray([k.pt for k in kp_cv])
-            des = np.asarray(des)
             
             # Raycast
             raycaster.set_view(pv)
