@@ -1,8 +1,10 @@
 import cv2
 import numpy as np
 
+from loguru import logger
+
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Tuple
 
 from . import io
 
@@ -14,9 +16,9 @@ def rotate_arkit(extrinsics):
     return extrinsics @ rotation
 
 class Camera:
-    def __init__(self, transform: np.ndarray, intrinsics: np.ndarray) -> None:
-        self.transform = transform
+    def __init__(self, intrinsics: np.ndarray, transform: np.ndarray = None) -> None:
         self.intrinsics = intrinsics
+        self.transform = transform
 
     @property
     def extrinsics(self) -> np.ndarray:
@@ -60,28 +62,36 @@ class QueryView(View):
     def __init__(self, p_image: Path, camera: Camera = None):
         super().__init__(0, p_image, camera)
 
-class FrameDescription:
+class ViewDescription:
     def __init__(self,
                  view: PresetView,
-                 keypoints_2d_cv: List[cv2.KeyPoint] = None,
+                 keypoints_2d: np.ndarray = None,
                  descriptors: np.ndarray = None,
                  keypoints_3d: np.ndarray = None):
         # Validate
-        if not (len(keypoints_2d_cv) == 0 and descriptors is None):
-            assert len(keypoints_2d_cv) == len(descriptors)
+        if not (keypoints_2d is None and descriptors is None):
+            assert keypoints_2d.shape[0] == descriptors.shape[0], logger.error(
+                f"Number of keypoints: {keypoints_2d.shape[0]} is not equal " +
+                f"to the number of descriptors: {descriptors.shape[0]}!")
         
         # Reference to the view, for quick access
         self.view = view
         
         # Features
-        self.keypoints_2d_cv = keypoints_2d_cv
+        self.keypoints_2d = keypoints_2d
         self.descriptors = descriptors
         self.keypoints_3d = keypoints_3d
 
-    @property
-    def keypoints_2d_np(self) -> np.ndarray:
-        return np.asarray([kp.pt for kp in self.keypoints_2d_cv]).astype(int)
-
+    def is_valid(self) -> bool:
+        return (self.keypoints_2d is not None) and (self.descriptors is not None)
+    
+    # TODO: this
+    def set_keypoints_3d(self, keypoints_3d: np.ndarray, mask: np.ndarray = None):
+        if mask is not None:
+            self.keypoints_2d = self.keypoints_2d[mask]
+            self.descriptors = self.descriptors[mask]
+        keypoints_3d = keypoints_3d[mask]
+    
     # TODO: where is it used? change to return all values
     def __getitem__(self, obj) -> Tuple[np.ndarray, np.ndarray]:
         """

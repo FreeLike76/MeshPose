@@ -4,7 +4,7 @@ import numpy as np
 
 # Built-in modules
 import sys
-import warnings
+from enum import Enum
 from datetime import datetime
 
 # Convenience imports
@@ -46,11 +46,21 @@ def resize_image(img: np.ndarray, size: int):
     img_resized = cv2.resize(img, (new_w, new_h), interpolation)
     return img_resized
 
-#class bcolors:
-#    GREEN = '\033[32m'
-#    BOLD = '\033[1m'
-#    ENDC = '\033[0m'
-#    CYAN = '\033[36m'
+class BColors:
+    GREEN = '\033[32m'
+    BOLD = '\033[1m'
+    ENDC = '\033[0m'
+    CYAN = '\033[36m'
+
+def tqdm_description(file_name, process_name):
+    """
+    Convert tqdm appearance to loguru format
+    """
+    return (f"{BColors.GREEN}{datetime.now().strftime('%F %T.%f')[:-3]}{BColors.ENDC} | " +
+            f"{BColors.BOLD}INFO{BColors.ENDC}     | " +
+            f"{BColors.CYAN}{file_name}{BColors.ENDC} - " +
+            f"{BColors.BOLD}{process_name}{BColors.ENDC}")
+
 #
 #class InterceptHandler(logging.Handler):
 #    """Redirect logging output to loguru"""
@@ -69,14 +79,7 @@ def resize_image(img: np.ndarray, size: int):
 #
 #        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 #
-#def tqdm_description(file_name, process_name):
-#    """Convert tqdm appearance to loguru format"""
-#    return \
-#        f"{bcolors.GREEN}{datetime.now().strftime('%F %T.%f')[:-3]}{bcolors.ENDC}" + \
-#        f" | {bcolors.BOLD}INFO{bcolors.ENDC} |" + \
-#        f" {bcolors.CYAN}{file_name}{bcolors.ENDC} -" + \
-#        f" {bcolors.BOLD}{process_name}{bcolors.ENDC}"
-#
+
 #def configure_stdout():
 #    """Set the logs to the desired appearance"""
 #    logger.remove(0)

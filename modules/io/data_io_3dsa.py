@@ -10,7 +10,8 @@ from typing import List
 
 from . import functional
 from .data_io_base import DataIOBase
-from ..data import PresetView, Camera, FrameDescription
+from ..data import PresetView, Camera, ViewDescription
+from ..utils import tqdm_description
 
 class DataIO3DSA(DataIOBase):
     def __init__(self, root_p: Path, verbose: bool = False) -> None:
@@ -132,7 +133,11 @@ class DataIO3DSA(DataIOBase):
         Loads all preset views from the project folder.
         """
         preset_views = []
-        for i, codename in enumerate(tqdm(self._meta, desc="Loading views", disable=(not self.verbose))):
+        for i, codename in enumerate(
+            tqdm(self._meta,
+                 desc=tqdm_description('modules.io.data_io_3dsa', "Loading views"),
+                 disable=(not self.verbose))):
+            
             # Get paths
             frame_p = self.get_frame_p(codename)
             frame_json_p = self.get_frame_json_p(codename)
@@ -149,8 +154,8 @@ class DataIO3DSA(DataIOBase):
         
         return preset_views
     
-    def save_frame_descriptions(self, name:str, frame_descriptions: List[FrameDescription]):
+    def save_frame_descriptions(self, name:str, frame_descriptions: List[ViewDescription]):
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     
-    def load_frame_descriptions(self, name:str) -> List[FrameDescription]:
+    def load_frame_descriptions(self, name:str) -> List[ViewDescription]:
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")

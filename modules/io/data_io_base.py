@@ -3,7 +3,7 @@ from loguru import logger
 from pathlib import Path
 from typing import List
 
-from ..data import PresetView, FrameDescription
+from ..data import PresetView, ViewDescription
 
 class DataIOBase:
     def __init__(self, root_p: Path, verbose: bool = False) -> None:
@@ -28,13 +28,13 @@ class DataIOBase:
         """
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     
-    def save_frame_descriptions(self, name:str, frame_descriptions: List[FrameDescription]):
+    def save_frame_descriptions(self, name:str, frame_descriptions: List[ViewDescription]):
         """
         Saves a list of FrameDescriptions under a given name.
         """
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     
-    def load_frame_descriptions(self, name:str) -> List[FrameDescription]:
+    def load_frame_descriptions(self, name:str) -> List[ViewDescription]:
         """
         Loads and returns a list of FrameDescriptions from a given name.
         """

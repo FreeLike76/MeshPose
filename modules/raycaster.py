@@ -5,7 +5,7 @@ import open3d as o3d
 from copy import deepcopy
 from typing import List, Tuple
 
-from .data import View
+from .data import View, ViewDescription
 
 class RayCaster:
     def __init__(self, mesh:o3d.geometry.TriangleMesh = None) -> None:
@@ -40,7 +40,7 @@ class RayCaster:
         self.set_intrinsics(view.camera.intrinsics, w, h)
         self.set_extrinsics(view.camera.extrinsics)
     
-    def cast(self, pts:np.ndarray=None) -> Tuple[np.ndarray, np.ndarray]:
+    def run(self, pts:np.ndarray=None) -> Tuple[np.ndarray, np.ndarray]:
         # Init rays
         rays = o3d.t.geometry.RaycastingScene.create_rays_pinhole(
             self.intrinsics, self.extrinsics, self.width, self.height)
@@ -68,7 +68,34 @@ class RayCaster:
         
         return vertices, mask
     
-    def cast_view(self, view:View) -> Tuple[np.ndarray, np.ndarray]:
-        # TODO: stortcut for casting view's keypoints
+    def run_view(self, view:View) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Casts all rays for a single view.
+        """
         self.set_view(view)
-        return self.cast()
+        return self.run()
+        
+    def run_view_desc(self, view_desc:ViewDescription):
+        """
+        Casts 2D keypoints of a single ViewDescriptions into 3D.
+        
+        Parameters:
+        --------
+        views_desc: ViewDescription
+            ViewDescriptions with 2D keypoints to cast into 3D.
+        """
+        self.set_view(view_desc.view)
+        vertices, mask = self.run(pts=view_desc.keypoints_2d)
+        view_desc.set_keypoints_3d(vertices, mask=mask)
+    
+    def run_views_desc(self, views_desc:List[ViewDescription]):
+        """
+        Casts 2D keypoints of each ViewDescriptions into 3D.
+        
+        Parameters:
+        --------
+        views_desc: List[ViewDescription]
+            A list of ViewDescriptions with 2D keypoints to cast into 3D.
+        """
+        for view_desc in views_desc:
+            self.run_view_desc(view_desc)

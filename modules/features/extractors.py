@@ -10,7 +10,8 @@ from typing import List, Tuple, Union
 from .detectors import Detector
 from .descriptors import Descriptor
 from ..utils import Serializable, Vebsosity
-from ..data import PresetView, FrameDescription
+from ..data import PresetView, ViewDescription
+from ..utils import tqdm_description
 
 # Try to import torch and torchvision
 TORCH_AVAILABLE = True
@@ -30,19 +31,19 @@ class BaseFeatureExtractor(Serializable):
     def __init__(self, subclass) -> None:
         DEFINED_EXTRACTORS[subclass.__name__] = subclass
     
-    def run(self, image:np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
+    def run(self, image:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Runs feature extractor on image and returns keypoints and descriptors.
         """
         raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
     
-    def run_view(self, view:PresetView) -> FrameDescription:
+    def run_view(self, view:PresetView) -> ViewDescription:
         """
         Runs feature extractor on a view and returns a single FrameDescription.
         """
         raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
     
-    def run_all(self, views:List[PresetView]) -> List[FrameDescription]:
+    def run_views(self, views:List[PresetView]) -> List[ViewDescription]:
         """
         Runs feature extractor on all views and returns a list of FrameDescriptions.
         """
@@ -73,24 +74,37 @@ class ClassicalFeatureExtractor(BaseFeatureExtractor):
             f"Created feature extractor with {self.detector.algorithm} " +
             f"detector and {self.descriptor.algorithm} descriptor.")
     
-    def run(self, image: np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
-        kp = self.detector.run(image)
-        kp, des = self.descriptor.run(image, kp)
-        return kp, des
+    def run(self, image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        # Run detector and descriptor
+        kp_cv = self.detector.run(image)
+        kp_cv, des = self.descriptor.run(image, kp_cv)
+        
+        # If no keypoints -> return None
+        if kp_cv is None or len(kp_cv) == 0:
+            return None, None
+        
+        # Convert cv2.KeyPoint to np.ndarray
+        kp_np = np.array([kp.pt for kp in kp_cv]).astype(np.int32)
+        kp_np = np.flip(kp_np, axis=1)
+        
+        return kp_np, des
     
-    def run_view(self, view:PresetView) -> FrameDescription:
+    def run_view(self, view:PresetView) -> ViewDescription:
         """
         Runs feature extractor on a view and returns a single FrameDescription.
         """
         kp, des = self.run(view.image)
-        return FrameDescription(view, keypoints_2d_cv=kp, descriptors=des)
+        return ViewDescription(view, keypoints_2d=kp, descriptors=des)
     
-    def run_all(self, views:List[PresetView]) -> List[FrameDescription]:
+    def run_views(self, views:List[PresetView]) -> List[ViewDescription]:
         """
         Runs feature extractor on all views and returns a list of FrameDescriptions.
         """
         descriptions = []
-        for view in tqdm(views, disable=self.verbosity>1):
+        for view in tqdm(
+            views, desc=tqdm_description("modules.features.extractors", "Feature Extraction"),
+            disable=self.verbosity > 1):
+            
             description = self.run_view(view)
             descriptions.append(description)
         return descriptions
@@ -125,19 +139,19 @@ class SilkFeatureExtractor(BaseFeatureExtractor):
             f"Checkpoints file {checkpoints_p} does not exist!")
         # Load model, etc
     
-    def run(self, image:np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
+    def run(self, image:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Runs feature extractor on image and returns keypoints and descriptors.
         """
         raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
     
-    def run_view(self, view:PresetView) -> FrameDescription:
+    def run_view(self, view:PresetView) -> ViewDescription:
         """
         Runs feature extractor on a view and returns a single FrameDescription.
         """
         raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
     
-    def run_all(self, views:List[PresetView]) -> List[FrameDescription]:
+    def run_views(self, views:List[PresetView]) -> List[ViewDescription]:
         """
         Runs feature extractor on all views and returns a list of FrameDescriptions.
         """
