@@ -7,22 +7,21 @@ from loguru import logger
 
 from typing import List
 
-from . import core, io, utils
-from .features.extractors import FeatureExtractor
-from .project import ProjectMeta
+from . import io, utils
+from .features.extractors import BaseFeatureExtractor
 from .raycaster import RayCaster
 from .data import PresetView, FrameDescription
 from .localization import Localization
 
-def preprocess(project: ProjectMeta,
-               feature_extractors: List[FeatureExtractor],
+def preprocess(data: io.DataIOBase,
+               feature_extractors: List[BaseFeatureExtractor],
                verbose: bool = False):
     """
     Init project and extract features from all images.
     """
     # Load project data
-    preset_views: List[PresetView] = Localization.load_preset_views(project)
-    mesh: o3d.geometry.TriangleMesh = io.load_mesh(project.get_mesh_p())
+    preset_views: List[PresetView] = data.load_views()
+    mesh: o3d.geometry.TriangleMesh = io.functional.load_mesh(data.get_mesh_p())
     raycaster = RayCaster(mesh)
     
     for extractor_i, extractor in enumerate(feature_extractors):
@@ -47,7 +46,7 @@ def preprocess(project: ProjectMeta,
             KP3D.append(kp3d)
             DES.append(des)
             
-        save_as_id = project.add_processed_features_meta(extractor.to_json())
-        io.save_features()
+        #save_as_id = project.add_processed_features_meta(extractor.to_json())
+        #io.save_features()
         
     return 

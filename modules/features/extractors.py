@@ -21,7 +21,7 @@ except:
 # All defined feature extractors
 DEFINED_EXTRACTORS = {}
 
-class FeatureExtractor(Serializable):
+class BaseFeatureExtractor(Serializable):
     """
     Base class for feature extractors.
     """
@@ -31,7 +31,7 @@ class FeatureExtractor(Serializable):
     def extract(self, image:np.ndarray) -> Tuple[List[cv2.KeyPoint], np.ndarray]:
         raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
 
-class ClassicalExtractor(FeatureExtractor):
+class ClassicalFeatureExtractor(BaseFeatureExtractor):
     """
     Class for classical feature extractors.
     See `detectors.py` and `descriptors.py` for more info about supported algorithms.
@@ -39,7 +39,7 @@ class ClassicalExtractor(FeatureExtractor):
     def __init__(self, detector: Union[str, Detector], descriptor: Union[str, Descriptor],
                  detector_params: dict = {}, descriptor_params: dict = {},
                  verbose: bool = False) -> None:
-        super(FeatureExtractor, self).__init__(ClassicalExtractor)
+        super().__init__(ClassicalFeatureExtractor)
         
         # Init detector
         self.detector = detector
@@ -69,21 +69,21 @@ class ClassicalExtractor(FeatureExtractor):
             }
         
     @staticmethod
-    def from_json(json: dict) -> "ClassicalExtractor":
-        return ClassicalExtractor(
+    def from_json(json: dict) -> "ClassicalFeatureExtractor":
+        return ClassicalFeatureExtractor(
             detector=Detector.from_json(json["detector"]),
             descriptor=Descriptor.from_json(json["descriptor"]),
             verbose=json.get("verbose", False),
             )
 
 # TODO: Implement this
-class SilkExtractor(FeatureExtractor):
+class SilkFeatureExtractor(BaseFeatureExtractor):
     """
     Class for learning-based feature extractor, named SILK.
     """
     def __init__(self, checkpoints_p: Path, 
                  device: str = "cpu", verbose: bool = False) -> None:
-        super(FeatureExtractor, self).__init__(SilkExtractor)
+        super().__init__(SilkFeatureExtractor)
         
         assert TORCH_AVAILABLE, logger.error(
             "PyTorch and TorchVision are not available! Install them to use SilkFeatureExtractor.")

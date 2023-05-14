@@ -10,7 +10,7 @@ image = utils.resize_image(image, 512)
 print("detectors", detectors.DEFINED_DETECTORS)
 print("descriptors", descriptors.DEFINED_DESCRIPTORS)
 
-pipeline = extractors.ClassicalExtractor(detector="SIFT", descriptor="SIFT", verbose=True)
+pipeline = extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbose=True)
 
 kp, des = pipeline(image)
 

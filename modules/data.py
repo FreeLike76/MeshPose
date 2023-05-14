@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from typing import List, Tuple
 from pathlib import Path
+from typing import List, Tuple, Union
 
 from . import io
 
@@ -13,33 +13,15 @@ def rotate_arkit(extrinsics):
                          [0, 0, 0, 1]])
     return extrinsics @ rotation
 
-
 class Camera:
     def __init__(self, transform: np.ndarray, intrinsics: np.ndarray) -> None:
-        self._transform = transform
-        self._intrinsics = intrinsics
-
-    @property
-    def transform(self) -> np.ndarray:
-        if self._transform is None:
-            raise ValueError('This object does not contain a camera pose')
-        return self._transform
-
-    @transform.setter
-    def transform(self, array: np.ndarray) -> np.ndarray:
-        assert array.shape == (4, 4)
-        self._transform = array
+        self.transform = transform
+        self.intrinsics = intrinsics
 
     @property
     def extrinsics(self) -> np.ndarray:
         extrinsics = rotate_arkit(self.transform)
         return np.linalg.inv(extrinsics)
-
-    @property
-    def intrinsics(self) -> np.ndarray:
-        if self._transform is None:
-            raise ValueError('This object does not contain an intrinsics')
-        return self._intrinsics
 
     @property
     def R(self) -> np.ndarray:
@@ -49,8 +31,34 @@ class Camera:
     def t(self) -> np.ndarray:
         return self.extrinsics[:3, 3]
 
-    def __str__(self):
-        return f'ArCamera: pose {self._transform.tolist()}, intrs {self._intrinsics.tolist()}'
+class View:
+    def __init__(self, id: int, p_image: Path, camera: Camera = None, rotate_img=False):
+        # Public
+        self.id = id
+        self.camera = camera
+        
+        # Private variables
+        self._p_image = p_image
+        self._rotate_img = rotate_img
+    
+    @property
+    def image(self) -> np.ndarray:
+        image = io.functional.load_image(self._p_image)
+        if self._rotate_img:
+            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        return image
+
+    @property
+    def image_gray(self) -> np.ndarray:
+        return cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+
+class PresetView(View):
+    def __init__(self, id: int, p_image: Path, camera: Camera = None):
+        super().__init__(id, p_image, camera)
+
+class QueryView(View):
+    def __init__(self, p_image: Path, camera: Camera = None):
+        super().__init__(0, p_image, camera)
 
 class FrameDescription:
     def __init__(self,
@@ -133,37 +141,6 @@ class FrameDescription:
             memo[id_self] = _copy
 
         return _copy
-
-class View:
-    def __init__(self, name: str, p_image: str, camera: Camera = None, rotate_img=False):
-        self.name = name
-        self.p_image = str(p_image) if isinstance(p_image, Path) else p_image
-        self.camera = camera
-        self._rotate_img = rotate_img
-        self.description: FrameDescription = None
-
-    @property
-    def image(self) -> np.ndarray:
-        # TODO: rewrite with io
-        image = cv2.imread(self._p_image)
-        if self._rotate_img:
-            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
-        return image
-
-    @property
-    def image_gray(self) -> np.ndarray:
-        return cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-
-    def reset(self):
-        self.description = None
-
-class PresetView(View):
-    def __init__(self, name: str, p_image: str, camera: Camera = None):
-        super().__init__(name, p_image, camera)
-
-class QueryView(View):
-    def __init__(self, p_image: str, camera: Camera = None):
-        super().__init__("query", p_image, camera)
 
 class ViewsMatch:
     def __init__(self, query_view: View, preset_view: View) -> None:

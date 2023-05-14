@@ -5,23 +5,23 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from modules.project import ProjectMeta
+from modules import io
 from modules.preprocess import preprocess
-from modules.features.extractors import ClassicalExtractor, SilkFeatureExtractor
+from modules.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
 
 def main(data_p: Path, verbose: bool = False):
     # Load project
-    project_meta = ProjectMeta(data_p, verbose=verbose)
+    data = io.DataIO3DSA(data_p, verbose=verbose)
     
     # Create feature extractors
     feature_extractors = [
-        ClassicalExtractor(detector="ORB", descriptor="ORB", verbose=verbose),
-        ClassicalExtractor(detector="GFTT", descriptor="SIFT", verbose=verbose),
-        ClassicalExtractor(detector="SIFT", descriptor="SIFT", verbose=verbose),
+        ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbose=verbose),
+        ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbose=verbose),
+        ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbose=verbose),
         # SilkFeatureExtractor
     ]
     # Preprocess dataset
-    preprocess(project_meta, feature_extractors, verbose=verbose)
+    preprocess(data, feature_extractors, verbose=verbose)
 
 def args_parser():
     parser = argparse.ArgumentParser(
@@ -32,7 +32,7 @@ def args_parser():
         help="Path to a dataset folder. Default is data/office_model_1/")
     
     parser.add_argument(
-        "--verbose", action="store_true", required=False, default=False)
+        "--verbose", action="store_true", required=False, default=True)
 
     return parser.parse_args()
 

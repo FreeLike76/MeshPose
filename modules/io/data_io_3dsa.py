@@ -1,5 +1,6 @@
 import numpy as np
 
+from tqdm import tqdm
 from loguru import logger
 
 import json
@@ -14,7 +15,7 @@ from ..data import PresetView, Camera, FrameDescription
 class DataIO3DSA(DataIOBase):
     def __init__(self, root_p: Path, verbose: bool = False) -> None:
         """
-        Data IO realization for 3D Scannear App data.
+        Data IO implementation for 3D Scannear App data.
         """
         # Validate root path
         assert root_p.exists() and root_p.is_dir(), logger.error(
@@ -24,17 +25,20 @@ class DataIO3DSA(DataIOBase):
         super().__init__(root_p, verbose=verbose)
         self._meta: List[str] = []
         
-        # Check if project path exists
+        # Create project path just in case
         project_p = self.get_project_p()
         project_p.mkdir(parents=True, exist_ok=True)
         
         # Try loading the meta data
-        if self.load_meta():
-            if self.verbose: logger.info(f"Loaded project metadata from {project_p.name}.")
+        if self._load_meta():
+            if self.verbose: logger.info(f"Loaded project metadata from {root_p.name}.")
         else:
-            self.scan_meta()
-            self.save_meta()
-            if verbose: logger.info(f"Initialized project metadata for {project_p.name}.")
+            self._scan_meta()
+            self._save_meta()
+            if verbose: logger.info(f"Initialized project metadata for {root_p.name}.")
+        
+        # Print n of keyframes
+        if self.verbose: logger.info(f"Indexed {len(self._meta)} keyframes.")
     
     def get_frame_p_template(self) -> str:
         return str(self.root_p / "frame_{}.jpg")
@@ -57,12 +61,25 @@ class DataIO3DSA(DataIOBase):
     def _parse_code_name(self, path: str) -> str:
         """
         Get codename of the frame (json).
+        
+        Parameters:
+        --------
+        path: str
+            Path to the json file.
+        
+        Returns:
+        --------
+        codename: str
+            Codename of the frame.
         """
         filename = Path(path).stem
         codename = filename.split("_")[-1]
         return codename
     
-    def scan_meta(self) -> List[str]:
+    def _scan_meta(self):
+        """
+        Scans the project folder for keyframes to index them.
+        """
         # Template paths
         template_frame_p = self.get_frame_p_template()
         template_frame_json_p = self.get_frame_json_p_template().format("*") 
@@ -83,15 +100,25 @@ class DataIO3DSA(DataIOBase):
                     self._meta.append(codename)
             except Exception as e:
                 logger.warning(f"Failed to parse frame id from {json_p}. Exceotion message: {e}")
-        if self.verbose: logger.info(f"Detected {len(self._meta)} keyframes.")
     
-    def save_meta(self):
+    def _save_meta(self):
+        """
+        Saves meta data to the project folder.
+        """
         # Init save dir if not present
         save_p = self.get_project_p() / "meta.json"
         with open(save_p, "w") as f:
             json.dump(self._meta, f)
     
-    def load_meta(self) -> bool:
+    def _load_meta(self) -> bool:
+        """
+        Loads meta data from the project folder.
+        
+        Returns:
+        --------
+        status: bool
+            'True' if meta data was loaded successfully, 'False' otherwise.
+        """
         meta_p = self.get_project_p() / "meta.json"
         try:
             meta = functional.load_json(meta_p)
@@ -100,12 +127,12 @@ class DataIO3DSA(DataIOBase):
             return False
         return True
     
-    def read(self) -> List[PresetView]:
+    def load_views(self) -> List[PresetView]:
         """
-        Reads all preset views from the project.
+        Loads all preset views from the project folder.
         """
         preset_views = []
-        for i, codename in enumerate(self._meta):
+        for i, codename in enumerate(tqdm(self._meta, desc="Loading views", disable=(not self.verbose))):
             # Get paths
             frame_p = self.get_frame_p(codename)
             frame_json_p = self.get_frame_json_p(codename)

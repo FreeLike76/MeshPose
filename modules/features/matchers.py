@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 from loguru import logger
 
-class Matcher:
+class BaseMatcher:
     def __init__(self,
                  test_ratio:bool=False, test_ratio_th:float=0.7,
                  test_symmetry:bool=False,
@@ -22,8 +22,6 @@ class Matcher:
     
     def __call__(self, desc1:np.ndarray, desc2:np.ndarray) -> np.ndarray:
         assert self.matcher is not None, logger.error("Matcher is not initialized! Use BFMatcher or FLANNMatcher.")
-        
-        if self.verbose: logger.info(f"Matching with {self.type}.")
         
         matches = []
         if self.test_symmetry:
@@ -58,7 +56,7 @@ class Matcher:
         return good_matches
 
 
-class BruteForceMatcher(Matcher):
+class BruteForceMatcher(BaseMatcher):
     def __init__(self, params:dict={},
                  test_ratio:bool=False, test_ratio_th:float=0.7,
                  test_symmetry:bool=False,
@@ -72,7 +70,7 @@ class BruteForceMatcher(Matcher):
         self.matcher = cv2.BFMatcher.create(**self.params)
 
 
-class FlannMatcher(Matcher):
+class FlannMatcher(BaseMatcher):
     def __init__(self,
                  index_params:dict={"algorithm": 1, "trees": 5},
                  search_params:dict={"algorithm": 6, "table_number": 12, "key_size": 20, "multi_probe_level": 2},
