@@ -11,7 +11,7 @@ from . import core, io, utils
 from .features.extractors import FeatureExtractor
 from .project import ProjectMeta
 from .raycaster import RayCaster
-from .data import PresetARView, FrameDescription
+from .data import PresetView, FrameDescription
 from .localization import Localization
 
 def preprocess(project: ProjectMeta,
@@ -21,7 +21,7 @@ def preprocess(project: ProjectMeta,
     Init project and extract features from all images.
     """
     # Load project data
-    preset_views: List[PresetARView] = Localization.load_preset_views(project)
+    preset_views: List[PresetView] = Localization.load_preset_views(project)
     mesh: o3d.geometry.TriangleMesh = io.load_mesh(project.get_mesh_p())
     raycaster = RayCaster(mesh)
     

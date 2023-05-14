@@ -14,7 +14,7 @@ def rotate_arkit(extrinsics):
     return extrinsics @ rotation
 
 
-class ARCamera:
+class Camera:
     def __init__(self, transform: np.ndarray, intrinsics: np.ndarray) -> None:
         self._transform = transform
         self._intrinsics = intrinsics
@@ -134,8 +134,8 @@ class FrameDescription:
 
         return _copy
 
-class ARView:
-    def __init__(self, name: str, p_image: str, camera: ARCamera = None, rotate_img=False):
+class View:
+    def __init__(self, name: str, p_image: str, camera: Camera = None, rotate_img=False):
         self.name = name
         self.p_image = str(p_image) if isinstance(p_image, Path) else p_image
         self.camera = camera
@@ -157,16 +157,16 @@ class ARView:
     def reset(self):
         self.description = None
 
-class PresetARView(ARView):
-    def __init__(self, name: str, p_image: str, camera: ARCamera = None):
+class PresetView(View):
+    def __init__(self, name: str, p_image: str, camera: Camera = None):
         super().__init__(name, p_image, camera)
 
-class QueryARView(ARView):
-    def __init__(self, p_image: str, camera: ARCamera = None):
+class QueryView(View):
+    def __init__(self, p_image: str, camera: Camera = None):
         super().__init__("query", p_image, camera)
 
 class ViewsMatch:
-    def __init__(self, query_view: ARView, preset_view: ARView) -> None:
+    def __init__(self, query_view: View, preset_view: View) -> None:
         self.query_view = query_view
         self.preset_view = preset_view
 
@@ -263,27 +263,28 @@ class ViewsMatch:
         return f'Query-view {self.query_view.index} and preset-view {self.preset_view.index} have {len(self)} corresponding points.'
 
 
-class ARTrajectory:
-    def __init__(self, init_view: ARView, init_est_pose: np.ndarray) -> None:
-        self._init_arkit: ARView = init_view
-        self._init_est: np.ndarray = init_est_pose
-        
-        init_pose = self._init_arkit.camera.extrinsics
-        self._delta: np.ndarray = ARTrajectory.delta(init_pose, self._init_est)
-    
-    @staticmethod
-    def delta(arkit_pose: np.ndarray, est_pose: np.ndarray):
-        return np.linalg.inv(arkit_pose) @ est_pose
-
-    def estimate_last(self, last_pose: ARView, delta: np.ndarray = None):
-        last_pose = last_pose.camera.extrinsics
-        delta = self._delta if delta is None else delta
-        # Long formula
-        # trj_est_pose = init_pose @ delta @ np.linalg.inv(self._init_est) @ last_pose @ delta
-        # Same but shorter
-        trj_est_pose = last_pose @ delta
-
-        return trj_est_pose
-
-    def __str__(self) -> str:
-        return f'ARTrajectory for start-view: {self._init_arkit}'
+#class ARTrajectory:
+#    def __init__(self, init_view: View, init_est_pose: np.ndarray) -> None:
+#        self._init_arkit: View = init_view
+#        self._init_est: np.ndarray = init_est_pose
+#        
+#        init_pose = self._init_arkit.camera.extrinsics
+#        self._delta: np.ndarray = ARTrajectory.delta(init_pose, self._init_est)
+#    
+#    @staticmethod
+#    def delta(arkit_pose: np.ndarray, est_pose: np.ndarray):
+#        return np.linalg.inv(arkit_pose) @ est_pose
+#
+#    def estimate_last(self, last_pose: View, delta: np.ndarray = None):
+#        last_pose = last_pose.camera.extrinsics
+#        delta = self._delta if delta is None else delta
+#        # Long formula
+#        # trj_est_pose = init_pose @ delta @ np.linalg.inv(self._init_est) @ last_pose @ delta
+#        # Same but shorter
+#        trj_est_pose = last_pose @ delta
+#
+#        return trj_est_pose
+#
+#    def __str__(self) -> str:
+#        return f'ARTrajectory for start-view: {self._init_arkit}'
+#

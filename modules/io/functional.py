@@ -9,10 +9,10 @@ from pathlib import Path
 from typing import Tuple, List
 
 def validate_file(path:Path):
-    assert path.exists() and path.is_file(), logger.error(f"No file: {str(path)}!")
+    assert path.exists() and path.is_file(), logger.warning(f"No file: {str(path)}!")
 
 def validate_create_dir(path:Path):
-    assert path.is_dir(), logger.error(f"Path: {str(path)} is not a directory!")
+    assert path.is_dir(), logger.warning(f"Path: {str(path)} is not a directory!")
     path.mkdir(parents=True, exist_ok=True)
 
 def load_image(path:Path) -> np.ndarray:
@@ -34,13 +34,6 @@ def load_json(path:Path) -> dict:
     with open(path, "r") as f:
         data = json.load(f)
     return data
-
-def load_camera_meta(path:Path) -> Tuple[np.ndarray, np.ndarray]:
-    frame_json = load_json(path)
-    # Convert to numpy
-    intrinsics = np.asarray(frame_json["intrinsics"]).reshape((3, 3)).astype(np.float32)
-    extrinsics = np.asarray(frame_json["cameraPoseARFrame"]).reshape((4, 4)).astype(np.float32)
-    return intrinsics, extrinsics
 
 def load_mesh(path:Path) -> o3d.geometry.TriangleMesh:
     validate_file(path)
