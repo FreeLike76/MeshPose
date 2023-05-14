@@ -9,19 +9,21 @@ from modules import io
 from modules.preprocess import preprocess
 from modules.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
 
-def main(data_p: Path, verbose: bool = False):
+def main(data_p: Path, verbosity: int = False):
     # Load project
-    data = io.DataIO3DSA(data_p, verbose=verbose)
+    data = io.DataIO3DSA(data_p, verbose=verbosity)
     
-    # Create feature extractors
-    feature_extractors = [
-        ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
-        ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+    # Define feature extractors
+    feature_extractors = {
+        #"orb_orb": ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
+        #"gftt_sift": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        #"gftt_rootsift": ClassicalFeatureExtractor(detector="GFTT", descriptor="ROOT_SIFT", verbosity=1),
+        "sift_sift": ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
-    ]
+    }
+    
     # Preprocess dataset
-    preprocess(data, feature_extractors, verbose=verbose)
+    preprocess(data, feature_extractors, verbose=verbosity)
 
 def args_parser():
     parser = argparse.ArgumentParser(
@@ -32,8 +34,8 @@ def args_parser():
         help="Path to a dataset folder. Default is data/office_model_1/")
     
     parser.add_argument(
-        "--verbose", action="store_true", required=False, default=True)
-
+        "--verbosity", type=int, choices=[0, 1, 2], default=1)
+    
     return parser.parse_args()
 
 if __name__ == "__main__":
@@ -41,11 +43,11 @@ if __name__ == "__main__":
     
     # Get params
     data_p = Path(args.data)
-    verbose = args.verbose
+    verbosity = args.verbosity
     
-    # Assert params
+    # Verify path
     assert data_p.exists() and data_p.is_dir(), logger.error(
         f"Directory {str(data_p)} does not exist!")
     
     # Run main
-    main(data_p, verbose=verbose)
+    main(data_p, verbosity=verbosity)

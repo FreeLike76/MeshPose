@@ -47,7 +47,7 @@ class View:
     def image(self) -> np.ndarray:
         image = io.functional.load_image(self._p_image)
         if self._rotate_img:
-            image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
         return image
 
     @property

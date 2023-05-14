@@ -135,7 +135,7 @@ class DataIO3DSA(DataIOBase):
         preset_views = []
         for i, codename in enumerate(
             tqdm(self._meta,
-                 desc=tqdm_description('modules.io.data_io_3dsa', "Loading views"),
+                 desc=tqdm_description("modules.io.data_io_3dsa", "Loading views"),
                  disable=(not self.verbose))):
             
             # Get paths
@@ -154,8 +154,58 @@ class DataIO3DSA(DataIOBase):
         
         return preset_views
     
-    def save_frame_descriptions(self, name:str, frame_descriptions: List[ViewDescription]):
-        raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
-    
-    def load_frame_descriptions(self, name:str) -> List[ViewDescription]:
-        raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
+    def save_view_descriptions(self, name:str, view_desc: List[ViewDescription]):
+        # Get path
+        project_p = self.get_project_p()
+        save_p = project_p / f"{name}"
+        
+        # Delete if exists
+        save_p.unlink(missing_ok=True)
+        
+        # Create dirs
+        save_kp_2d = save_p / "kp2d"
+        save_kp_2d.mkdir(parents=True, exist_ok=True)
+        save_des = save_p / "des"
+        save_des.mkdir(parents=True, exist_ok=True)
+        save_kp_3d = save_p / "kp3d"
+        save_kp_3d.mkdir(parents=True, exist_ok=True)
+        
+        for vd in tqdm(view_desc,
+                       desc=tqdm_description("modules.io.data_io_3dsa", "Saving view desctiptions"),
+                       disable=(not self.verbose)):
+            vd_id = vd.view.id
+            codename = self._meta[vd_id]
+            
+            np.save(save_kp_2d / f"{codename}.npy", vd.keypoints_2d)
+            np.save(save_des / f"{codename}.npy", vd.descriptors)
+            np.save(save_kp_3d / f"{codename}.npy", vd.keypoints_3d)
+        
+        if self.verbose: logger.info(f"Saved view descriptions to to {str(save_p)}.")
+        
+    def load_view_descriptions(self, name:str) -> List[ViewDescription]:
+        # Get path
+        project_p = self.get_project_p()
+        save_p = project_p / f"{name}"
+        
+        # Verify
+        assert save_p.exists() and save_p.is_dir(), logger.error(
+            f"Directory {str(save_p)} does not exist!")
+        
+        # Get dirs
+        save_kp_2d = save_p / "kp2d"
+        save_des = save_p / "des"
+        save_kp_3d = save_p / "kp3d"
+        
+        # Load all
+        view_desc:List[ViewDescription] = []
+        for codename in tqdm(self._meta,
+                             desc=tqdm_description("modules.io.data_io_3dsa", "Loading views desctiption"),
+                             disable=(not self.verbose)):
+            kp2d = functional.load_np(save_kp_2d / f"{codename}.npy")
+            des = functional.load_np(save_des / f"{codename}.npy")
+            kp3d = functional.load_np(save_kp_3d / f"{codename}.npy")
+            
+            view_desc.append(ViewDescription(kp2d, des, kp3d))
+            
+        if self.verbose: logger.info(f"Loaded {len(view_desc)} view description from {str(save_p)}.")
+        return view_desc

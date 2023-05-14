@@ -28,15 +28,15 @@ class DataIOBase:
         """
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     
-    def save_frame_descriptions(self, name:str, frame_descriptions: List[ViewDescription]):
+    def save_view_descriptions(self, name:str, views_desc: List[ViewDescription]):
         """
-        Saves a list of FrameDescriptions under a given name.
+        Saves a list of ViewDescription under a given name.
         """
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     
-    def load_frame_descriptions(self, name:str) -> List[ViewDescription]:
+    def load_view_descriptions(self, name:str) -> List[ViewDescription]:
         """
-        Loads and returns a list of FrameDescriptions from a given name.
+        Loads and returns a list of ViewDescription from a given name.
         """
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     

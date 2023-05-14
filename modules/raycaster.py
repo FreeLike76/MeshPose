@@ -9,20 +9,22 @@ from .data import View, ViewDescription
 
 class RayCaster:
     def __init__(self, mesh:o3d.geometry.TriangleMesh = None) -> None:
-        self.mesh = mesh
+        # Init empty
+        self.mesh = None
+        self.scene = None
+        # No params
         self.intrinsics = None
         self.extrinsics = None
         self.height = None
         self.width = None
         
-        self.scene = o3d.t.geometry.RaycastingScene()
+        if mesh is not None:
+            self.set_mesh(mesh)
     
     def set_mesh(self, mesh:o3d.geometry.TriangleMesh):
+        self.mesh = mesh
+        self.scene = o3d.t.geometry.RaycastingScene()
         self.scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(mesh))
-    
-    def set_meshes(self, meshes:List[o3d.geometry.TriangleMesh]):
-        for mesh in meshes:
-            self.set_mesh(mesh)
     
     def set_intrinsics(self, intrinsics:np.ndarray, width:int, height:int):
         self.intrinsics = intrinsics
@@ -56,15 +58,14 @@ class RayCaster:
         
         # Get distances
         distance = ans["t_hit"]
-        hit_mask = distance.isfinite()
         
-        # Mask out infinite distances
-        finite_distance = distance[hit_mask]
-        finite_rays = rays[hit_mask]
+        # Get finite
+        mask = distance.isfinite()
+        mask = mask.numpy()
         
         # Calculate 3d coordinates
-        vertices = finite_rays[:, :3] + finite_rays[:, 3:] * finite_distance.reshape((-1, 1))
-        mask = hit_mask.numpy()
+        vertices = rays[:, :3] + rays[:, 3:] * distance.reshape((-1, 1))
+        vertices = vertices.numpy()
         
         return vertices, mask
     
@@ -85,6 +86,7 @@ class RayCaster:
             ViewDescriptions with 2D keypoints to cast into 3D.
         """
         self.set_view(view_desc.view)
+        
         vertices, mask = self.run(pts=view_desc.keypoints_2d)
         view_desc.set_keypoints_3d(vertices, mask=mask)
     
