@@ -34,7 +34,7 @@ class DataIOBase:
         """
         raise NotImplementedError("DataIOBase is an abstract class. Use a concrete implementation instead.")
     
-    def load_view_descriptions(self, name:str) -> List[ViewDescription]:
+    def load_view_descriptions(self, name:str, views:List[PresetView]) -> List[ViewDescription]:
         """
         Loads and returns a list of ViewDescription from a given name.
         """

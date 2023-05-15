@@ -12,7 +12,7 @@ from ..pose_solver import BasePoseSolver
 # TODO: add retrieval
 class ImageLocalization:
     def __init__(self,
-                 view_desc: List[ViewDescription],
+                 views_desc: List[ViewDescription],
                  feature_extractor: BaseFeatureExtractor,
                  matcher: BaseMatcher,
                  pose_solver: BasePoseSolver,
@@ -22,7 +22,7 @@ class ImageLocalization:
         
         Parameters:
         --------
-        view_desc: List[ViewDescription]
+        views_desc: List[ViewDescription]
             List of ViewDescription objects.
         feature_extractor: BaseFeatureExtractor
             Feature extractor to use.
@@ -37,7 +37,7 @@ class ImageLocalization:
         self.verbose = verbose
         
         # Data
-        self.view_desc = view_desc
+        self.views_desc = views_desc
         
         # Algorithms
         self.feature_extractor = feature_extractor
@@ -78,9 +78,10 @@ class ImageLocalization:
         
         # Match features
         if self.verbose: logger.info(f"Matching descriptors.")
-        matches = self.matcher.run(query_desc, self.view_desc)
+        matches = self.matcher.run(query_desc, self.views_desc)
         
         # Solve pose
-        pose = self.pose_solver.run(query_desc, self.view_desc, matches)
+        if self.verbose: logger.info(f"Solving pose.")
+        pose = self.pose_solver.run(matches)
         
         return pose

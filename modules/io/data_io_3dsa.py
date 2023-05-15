@@ -182,7 +182,7 @@ class DataIO3DSA(DataIOBase):
         
         if self.verbose: logger.info(f"Saved view descriptions to to {str(save_p)}.")
         
-    def load_view_descriptions(self, name:str) -> List[ViewDescription]:
+    def load_view_descriptions(self, name:str, views:List[PresetView]) -> List[ViewDescription]:
         # Get path
         project_p = self.get_project_p()
         save_p = project_p / f"{name}"
@@ -197,13 +197,24 @@ class DataIO3DSA(DataIOBase):
         save_kp_3d = save_p / "kp3d"
         
         # Load all
+        view_iter = 0
         view_desc:List[ViewDescription] = []
         for codename in tqdm(self._meta,
                              desc=tqdm_description("modules.io.data_io_3dsa", "Loading views desctiption"),
                              disable=(not self.verbose)):
+            # Read
             kp2d = functional.load_np(save_kp_2d / f"{codename}.npy")
             des = functional.load_np(save_des / f"{codename}.npy")
             kp3d = functional.load_np(save_kp_3d / f"{codename}.npy")
+            
+            # Create view description
+            vd = ViewDescription(kp2d, des, kp3d)
+            
+            # Iterate over frames until we find the one with matching codename
+            while self._meta[views[view_iter].id] != codename:
+                view_iter += 1
+            vd.view = views[view_iter]
+            view_iter += 1
             
             view_desc.append(ViewDescription(kp2d, des, kp3d))
             
