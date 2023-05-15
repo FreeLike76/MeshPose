@@ -8,15 +8,19 @@ from typing import List, Tuple
 from .data import View, ViewDescription
 
 class RayCaster:
-    def __init__(self, mesh:o3d.geometry.TriangleMesh = None) -> None:
+    def __init__(self, mesh:o3d.geometry.TriangleMesh = None,
+                 intrinsics:np.ndarray = None,
+                 height:int = None, width:int = None,
+                 extrinsics:np.ndarray = None) -> None:
         # Init empty
         self.mesh = None
         self.scene = None
+        
         # No params
-        self.intrinsics = None
-        self.extrinsics = None
-        self.height = None
-        self.width = None
+        self.intrinsics = intrinsics
+        self.height = height
+        self.width = width
+        self.extrinsics = extrinsics
         
         if mesh is not None:
             self.set_mesh(mesh)

@@ -1,36 +1,62 @@
 import numpy as np
 import open3d as o3d
 
+from loguru import logger
+
+from .render import SceneRender
 from ..raycaster import RayCaster
 
 class SceneAR:
     def __init__(self,
                  env_mesh:o3d.geometry.TriangleMesh,
-                 ar_mesh:o3d.geometry.TriangleMesh) -> None:
-        # Create two raycasters
-        self.env_scene = RayCaster(env_mesh)
-        self.ar_scene = RayCaster(ar_mesh)
-        self.ar_render = None # TODO
-        
-    def set_intrinsics(self, intrinsics:np.ndarray, width:int, height:int):
+                 ar_mesh:o3d.geometry.TriangleMesh,
+                 intrinsics:np.ndarray,
+                 height:int, width:int,
+                 extrinsics:np.ndarray = None) -> None:
+        # Save params
         self.intrinsics = intrinsics
-        self.width = width
         self.height = height
+        self.wight = width
+        self.extrinsics = extrinsics
+        
+        # Init scenes
+        self.env_scene = RayCaster(env_mesh, intrinsics, height, width, extrinsics)
+        self.ar_scene = RayCaster(ar_mesh, intrinsics, height, width, extrinsics)
+        self.ar_render = SceneRender(ar_mesh, intrinsics, height, width, extrinsics)
     
     def set_extrinsics(self, extrinsics:np.ndarray):
+        """
+        Updates extrinsics of the scene.
+        """
         self.extrinsics = extrinsics
-    
-    def set_view(self, view:View):
-        """
-        Sets intrinsics and extrinsics from ARView.
-        """
-        h, w = view.image.shape[:2]
-        self.set_intrinsics(view.camera.intrinsics, w, h)
-        self.set_extrinsics(view.camera.extrinsics)
+        
+        # Update scenes
+        self.env_scene.set_extrinsics(extrinsics)
+        self.ar_scene.set_extrinsics(extrinsics)
+        self.ar_render.set_extrinsics(extrinsics)
     
     def run(self, frame:np.ndarray) -> np.ndarray:
-        # TODO:
-        # 1. Get depth buffer from AR
-        # 2. Get depth buffer from env
-        # 3. Cover AR with env
-        # 4. Render AR on frame
+        """
+        Renders AR scene on top of the given frame.
+        Parameters:
+        --------
+        frame: np.ndarray
+            Frame to render AR scene on top of.
+        
+        Returns:
+        --------
+        frame: np.ndarray
+            A copy of the given frame with AR scene rendered on top of it.
+        """
+        assert self.extrinsics is not None, logger.error("Extrinsics have not been set!")
+        
+        env_depth = self.env_scene.get_depth_buffer()
+        ar_depth = self.ar_scene.get_depth_buffer()
+        ar_frame = self.ar_render.run()
+        
+        mask = ar_depth < env_depth
+        
+        _frame = frame.copy()
+        _frame[mask] = ar_frame[mask]
+        
+        return _frame
