@@ -24,7 +24,13 @@ try:
 except:
     logger.info("OpenCV-Contrib not installed. Some feature descriptors will not be available.")
 
-class Descriptor(Serializable):
+class BaseDescriptor(Serializable):
+    def __init__(self) -> None:
+        raise NotImplementedError("BaseDescriptor is an abstract class. Use a concrete implementation instead.")
+    def run(self, image:np.ndarray, keypoints:list):
+        raise NotImplementedError("BaseDescriptor is an abstract class. Use a concrete implementation instead.")
+
+class Descriptor(BaseDescriptor):
     def __init__(self, algorithm:str, params:dict={}, verbose:bool=False) -> None:
         assert algorithm in DEFINED_DESCRIPTORS.keys(), logger.error(
             f"Descriptor algorithm {algorithm} is not defined. " +

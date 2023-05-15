@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 from copy import deepcopy
 from loguru import logger
@@ -21,7 +22,13 @@ try:
 except:
     logger.info("OpenCV-Contrib not installed. Some feature detectors will not be available.")
 
-class Detector(Serializable):
+class BaseDetector(Serializable):
+    def __init__(self) -> None:
+        raise NotImplementedError("BaseDetector is an abstract class. Use a concrete implementation instead.")
+    def run(self, image:np.ndarray):
+        raise NotImplementedError("BaseDetector is an abstract class. Use a concrete implementation instead.")
+    
+class Detector(BaseDetector):
     def __init__(self, algorithm:str, params:dict={}, verbose:bool=False) -> None:
         assert algorithm in DEFINED_DETECTORS.keys(), logger.error(
             f"Detector algorithm {algorithm} is not defined. " +
@@ -34,7 +41,7 @@ class Detector(Serializable):
         self.detector = DEFINED_DETECTORS[algorithm].create(**params)
         if self.verbose: logger.info(f"Created {self.algorithm} detector.")
     
-    def run(self, image):
+    def run(self, image:np.ndarray):
         if self.verbose: logger.info(f"Detecting {self.algorithm} features.")
         kp = self.detector.detect(image)
         if self.verbose: logger.info(f"Detected {len(kp)} features.")
