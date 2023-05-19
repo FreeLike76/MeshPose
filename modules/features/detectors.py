@@ -22,13 +22,8 @@ try:
 except:
     logger.info("OpenCV-Contrib not installed. Some feature detectors will not be available.")
 
-class BaseDetector(Serializable):
-    def __init__(self) -> None:
-        raise NotImplementedError("BaseDetector is an abstract class. Use a concrete implementation instead.")
-    def run(self, image:np.ndarray):
-        raise NotImplementedError("BaseDetector is an abstract class. Use a concrete implementation instead.")
-    
-class Detector(BaseDetector):
+
+class Detector(Serializable):
     def __init__(self, algorithm:str, params:dict={}, verbose:bool=False) -> None:
         assert algorithm in DEFINED_DETECTORS.keys(), logger.error(
             f"Detector algorithm {algorithm} is not defined. " +

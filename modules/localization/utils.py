@@ -13,7 +13,8 @@ from ..raycaster import RayCaster
 from ..data import PresetView, ViewDescription
 
 def preprocess(data: io.DataIOBase,
-               feature_extractors: Dict[str, BaseFeatureExtractor]) -> Dict[str, List[ViewDescription]]:
+               feature_extractors: Dict[str, BaseFeatureExtractor],
+               verbose: bool = False) -> Dict[str, List[ViewDescription]]:
     """
     Init project and extract features from all images.
     """
@@ -22,7 +23,7 @@ def preprocess(data: io.DataIOBase,
     
     # Create raycaster
     mesh: o3d.geometry.TriangleMesh = io.functional.load_mesh(data.get_mesh_p())
-    raycaster = RayCaster(mesh)
+    raycaster = RayCaster(mesh, verbose=verbose)
     
     # Run preprocessing
     result = {}

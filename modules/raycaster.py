@@ -2,16 +2,17 @@ import cv2
 import numpy as np
 import open3d as o3d
 
-from copy import deepcopy
+from tqdm import tqdm
 from typing import List, Tuple
 
+from .utils import tqdm_description
 from .data import View, ViewDescription
 
 class RayCaster:
     def __init__(self, mesh:o3d.geometry.TriangleMesh = None,
                  intrinsics:np.ndarray = None,
                  height:int = None, width:int = None,
-                 extrinsics:np.ndarray = None) -> None:
+                 extrinsics:np.ndarray = None, verbose:bool = False) -> None:
         # Init empty
         self.mesh = None
         self.scene = None
@@ -21,6 +22,8 @@ class RayCaster:
         self.height = height
         self.width = width
         self.extrinsics = extrinsics
+        
+        self.verbose = verbose
         
         if mesh is not None:
             self.set_mesh(mesh)
@@ -122,5 +125,7 @@ class RayCaster:
         views_desc: List[ViewDescription]
             A list of ViewDescriptions with 2D keypoints to cast into 3D.
         """
-        for view_desc in views_desc:
+        for view_desc in tqdm(views_desc,
+                              desc=tqdm_description("modules.raycaster", "Ray Casting"),
+                              disable=(not self.verbose)):
             self.run_view_desc(view_desc)

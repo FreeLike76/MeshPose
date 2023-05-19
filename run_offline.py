@@ -23,7 +23,7 @@ def main(data_p: Path, verbosity: int = False):
     }
     
     # Preprocess dataset
-    precomputed_features = preprocess(data, feature_extractors, verbose=verbosity)
+    precomputed_features = preprocess(data, feature_extractors, vebose=verbosity)
     
     # Save precomputed features
     for extractor_name, views_desc in precomputed_features.items():

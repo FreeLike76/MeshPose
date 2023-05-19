@@ -7,7 +7,7 @@ from typing import Tuple, List
 
 from .data import ViewMatches
 
-class BasePoseSolver():
+class BasePoseSolver:
     def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = None) -> None:
         self.intrinsics = intrinsics
         self.dist_coeffs = dist_coeffs
@@ -18,6 +18,11 @@ class BasePoseSolver():
     def run_matches(self, view_matches:List[ViewMatches], **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         raise NotImplementedError("PoseSolver is an abstract class. Use a concrete implementation instead.")
 
+    def _validate(self, pts2d:np.ndarray, pts3d:np.ndarray):
+        assert pts2d.shape[0] == pts3d.shape[0], logger.info("Number of 2D and 3D points must be equal!")
+        assert self.intrinsics is not None, logger.info("Intrinsics must be set!")
+        assert self.dist_coeffs is not None, logger.info("Distortion coefficients must be set!")
+        
 class ImagePoseSolver(BasePoseSolver):
     """
     Basic implementation of a Pose Solver for a single image.
@@ -26,9 +31,7 @@ class ImagePoseSolver(BasePoseSolver):
         super().__init__(intrinsics, dist_coeffs)
         
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
-        assert pts2d.shape[0] == pts3d.shape[0], logger.info("Number of 2D and 3D points must be equal!")
-        assert self.intrinsics is not None, logger.info("Intrinsics must be set!")
-        assert self.dist_coeffs is not None, logger.info("Distortion coefficients must be set!")
+        self._validate(pts2d, pts3d)
         
         # Solve PnP
         _, rvec, tvec = cv2.solvePnP(pts3d, pts2d, self.intrinsics, self.dist_coeffs, **kwargs)
@@ -68,9 +71,7 @@ class VideoPoseSolver(ImagePoseSolver):
         self.tvec = None
         
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, track:bool=False, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
-        assert pts2d.shape[0] == pts3d.shape[0], logger.info("Number of 2D and 3D points must be equal!")
-        assert self.intrinsics is not None, logger.info("Intrinsics must be set!")
-        assert self.dist_coeffs is not None, logger.info("Distortion coefficients must be set!")
+        self._validate(pts2d, pts3d)
         
         if track:
             pass # TODO: use guess from previous frame
