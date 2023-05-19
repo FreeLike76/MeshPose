@@ -160,7 +160,7 @@ class DataIO3DSA(DataIOBase):
         save_p = project_p / f"{name}"
         
         # Delete if exists
-        save_p.unlink(missing_ok=True)
+        #save_p.unlink(missing_ok=True)
         
         # Create dirs
         save_kp_2d = save_p / "kp2d"
@@ -192,9 +192,9 @@ class DataIO3DSA(DataIOBase):
             f"Directory {str(save_p)} does not exist!")
         
         # Get dirs
-        save_kp_2d = save_p / "kp2d"
-        save_des = save_p / "des"
-        save_kp_3d = save_p / "kp3d"
+        dir_kp_2d = save_p / "kp2d"
+        dir_des = save_p / "des"
+        dir_kp_3d = save_p / "kp3d"
         
         # Load all
         view_iter = 0
@@ -202,21 +202,25 @@ class DataIO3DSA(DataIOBase):
         for codename in tqdm(self._meta,
                              desc=tqdm_description("modules.io.data_io_3dsa", "Loading views desctiption"),
                              disable=(not self.verbose)):
-            # Read
-            kp2d = functional.load_np(save_kp_2d / f"{codename}.npy")
-            des = functional.load_np(save_des / f"{codename}.npy")
-            kp3d = functional.load_np(save_kp_3d / f"{codename}.npy")
+            # Get paths
+            kp_2d_p  = dir_kp_2d / f"{codename}.npy"
+            des_p = dir_des / f"{codename}.npy"
+            kp_3d_p = dir_kp_3d / f"{codename}.npy"
+            if not kp_2d_p.exists() or not des_p.exists() or not kp_3d_p.exists():
+                continue
             
-            # Create view description
-            vd = ViewDescription(kp2d, des, kp3d)
+            # Read
+            kp2d = functional.load_np(dir_kp_2d / f"{codename}.npy")
+            des = functional.load_np(dir_des / f"{codename}.npy")
+            kp3d = functional.load_np(dir_kp_3d / f"{codename}.npy")
             
             # Iterate over frames until we find the one with matching codename
             while self._meta[views[view_iter].id] != codename:
                 view_iter += 1
-            vd.view = views[view_iter]
-            view_iter += 1
             
-            view_desc.append(ViewDescription(kp2d, des, kp3d))
+            # Create view description
+            vd = ViewDescription(views[view_iter], kp2d, des, kp3d)
+            view_desc.append(vd)
             
         if self.verbose: logger.info(f"Loaded {len(view_desc)} view description from {str(save_p)}.")
         return view_desc

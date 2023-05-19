@@ -132,7 +132,7 @@ class BruteForceMatcher(BaseMatcher):
         
         # Init matcher
         self.params = deepcopy(params)
-        self.matcher = cv2.BFMatcher.create(**self.params)
+        self.matcher = cv2.BFMatcher_create(**self.params)
 
 class FlannMatcher(BaseMatcher):
     def __init__(self,

@@ -34,7 +34,7 @@ def main(data_p: Path, verbosity: int = False):
     views_desc = data.load_view_descriptions("orb_orb", views)
     
     # TEST
-    query = views_desc.pop(0)
+    query_desc = views_desc.pop(0)
     # TEST
         
     # Init feature extractor
@@ -42,11 +42,12 @@ def main(data_p: Path, verbosity: int = False):
     
     # Init matcher
     mat = matchers.BruteForceMatcher(
-        params={"norm_type": cv2.NORM_HAMMING, "cross_check": False},
+        params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
         test_ratio=True, test_ratio_th=0.7,
         test_symmetry=False, verbose=True)
+    
     # Init pose solver
-    ps = pose_solver.ImagePoseSolver(query.view.camera.intrinsics)
+    ps = pose_solver.ImagePoseSolver(query_desc.view.camera.intrinsics)
     
     image_loc = localization.ImageLocalization(
         views_desc=views_desc,
@@ -56,7 +57,7 @@ def main(data_p: Path, verbosity: int = False):
         verbose=True)
     
     # Run on image
-    status, rmat, tvec = image_loc.run(query)
+    status, rmat, tvec = image_loc.run(query_desc.view)
     
 def args_parser():
     parser = argparse.ArgumentParser(

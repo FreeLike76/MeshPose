@@ -68,7 +68,7 @@ class ImageLocalization:
         query_desc = self.feature_extractor.run_view(query)
         
         # Check if valid
-        if not query_desc.is_valid():
+        if not query_desc.is_2d():
             logger.warning(f"Query view is not valid!")
             return False, None, None
         
@@ -78,10 +78,10 @@ class ImageLocalization:
         
         # Match features
         if self.verbose: logger.info(f"Matching descriptors.")
-        matches = self.matcher.run(query_desc, self.views_desc)
+        matches = self.matcher.run_views_desc(query_desc, self.views_desc)
         
         # Solve pose
         if self.verbose: logger.info(f"Solving pose.")
-        pose = self.pose_solver.run(matches)
+        pose = self.pose_solver.run_matches(matches)
         
         return pose

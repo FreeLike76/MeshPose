@@ -32,10 +32,13 @@ def preprocess(data: io.DataIOBase,
         views_desc = extractor_pipeline.run_views(views)
         
         # Filter valid
-        views_desc = [vd for vd in views_desc if vd.is_valid()]
+        views_desc = [vd for vd in views_desc if vd.is_2d()]
         
         # Run raycaster
         raycaster.run_views_desc(views_desc)
+        
+        # Filter valid
+        views_desc = [vd for vd in views_desc if vd.is_3d()]
         
         # Save pipeline
         result[extractor_name] = views_desc

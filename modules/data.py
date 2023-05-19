@@ -82,15 +82,18 @@ class ViewDescription:
         self.descriptors = descriptors
         self.keypoints_3d = keypoints_3d
 
-    def is_valid(self) -> bool:
+    def is_2d(self) -> bool:
         return (self.keypoints_2d is not None) and (self.descriptors is not None)
+    
+    def is_3d(self) -> bool:
+        return self.keypoints_3d is not None
     
     # TODO: this
     def set_keypoints_3d(self, keypoints_3d: np.ndarray, mask: np.ndarray = None):
         if mask is not None:
             self.keypoints_2d = self.keypoints_2d[mask]
             self.descriptors = self.descriptors[mask]
-        keypoints_3d = keypoints_3d[mask]
+        self.keypoints_3d = keypoints_3d[mask]
 
 class ViewMatches:
     def __init__(self, query: ViewDescription, preset: ViewDescription, matches) -> None:
