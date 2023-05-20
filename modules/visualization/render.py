@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import open3d as o3d
 
@@ -36,14 +37,26 @@ class SceneRender:
         pinhole_camera_parameters = o3d.camera.PinholeCameraParameters()
         pinhole_camera_parameters.intrinsic = pinhole_camera_intrinsic
         pinhole_camera_parameters.extrinsic = self.extrinsics
-
-        # Render image
+        
+        # Create visualizer
         vis = o3d.visualization.Visualizer()
-        vis.create_window(visible=False)
+        vis.create_window(window_name="render", visible=False, width=self.width, height=self.height)
         vis.add_geometry(self.mesh)
+        
+        # Set view control
         ctr = vis.get_view_control()
-        ctr.convert_from_pinhole_camera_parameters(pinhole_camera_parameters)
+        ctr.convert_from_pinhole_camera_parameters(pinhole_camera_parameters, allow_arbitrary=True)
+        
+        # Update
+        vis.poll_events()
+        vis.update_renderer()
+        
+        # Render
         image = vis.capture_screen_float_buffer(do_render=True)
+        image = np.array(image)
         vis.destroy_window()
-
+        
+        # Transform to BGR
+        image = (image[:, :, ::-1] * 255).astype(np.uint8)
+        
         return image

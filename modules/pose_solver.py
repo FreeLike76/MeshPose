@@ -8,9 +8,13 @@ from typing import Tuple, List
 from .data import ViewMatches
 
 class BasePoseSolver:
-    def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = None) -> None:
+    def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),
+                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33) -> None:
         self.intrinsics = intrinsics
         self.dist_coeffs = dist_coeffs
+        self.min_matches = min_matches
+        self.min_inliers = min_inliers
+        self.min_inliers_ratio = min_inliers_ratio
     
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         raise NotImplementedError("PoseSolver is an abstract class. Use a concrete implementation instead.")
@@ -27,20 +31,35 @@ class ImagePoseSolver(BasePoseSolver):
     """
     Basic implementation of a Pose Solver for a single image.
     """
-    def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = None) -> None:
-        super().__init__(intrinsics, dist_coeffs)
+    def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),
+                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33) -> None:
+        super().__init__(intrinsics, dist_coeffs, min_matches, min_inliers, min_inliers_ratio)
         
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         self._validate(pts2d, pts3d)
         
         # Solve PnP
-        _, rvec, tvec = cv2.solvePnP(pts3d, pts2d, self.intrinsics, self.dist_coeffs, **kwargs)
+        ret, rvec, tvec, inliers = cv2.solvePnPRansac(pts3d.astype(np.float32), pts2d[:, ::-1].astype(np.float32),
+                                                      self.intrinsics, self.dist_coeffs, iterationsCount=1000)
+        if ret:
+            len_inliers = len(inliers)
+            rel_inliers = len_inliers / len(pts3d)
+            
+            print("Total inliers:", len_inliers)
+            print("Rel. inliers:", rel_inliers)
+            
+            if len_inliers < self.min_inliers or rel_inliers < self.min_inliers_ratio:
+                return False, None, None
+        
+        #ret, rvec, tvec = cv2.solvePnP(pts3d.astype(np.float32), pts2d.astype(np.float32),
+        #                               self.intrinsics, self.dist_coeffs,
+        #                               flags=cv2.SOLVEPNP_ITERATIVE)
         
         # Convert Rodrigues vector to rotation matrix
         rmat, _ = cv2.Rodrigues(rvec)
         
         # Return pose
-        return rmat, tvec
+        return ret, rmat, tvec
     
     def run_matches(self, view_matches:List[ViewMatches], **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         # Find best view
@@ -51,7 +70,7 @@ class ImagePoseSolver(BasePoseSolver):
                 best_i = view_matches.index(view)
         
         # Test if enough matches, min is 4
-        if best_n < max(4, kwargs.get("min_matches", 0)):
+        if best_n < self.min_matches:
             return False, None, None
         
         # Run PnP
@@ -63,8 +82,9 @@ class VideoPoseSolver(ImagePoseSolver):
     Pose Solver for a video sequence. Reuses the previous frame pose as a guess for the current frame.
     Make sure to set track=True when calling run() for consecutive frames.
     """
-    def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = None) -> None:
-        super().__init__(intrinsics, dist_coeffs)
+    def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),
+                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33) -> None:
+        super().__init__(intrinsics, dist_coeffs, min_matches, min_inliers, min_inliers_ratio)
         
         # Prev frame pose
         self.rvec = None
@@ -77,13 +97,18 @@ class VideoPoseSolver(ImagePoseSolver):
             pass # TODO: use guess from previous frame
         
         # Solve PnP
-        _, rvec, tvec = cv2.solvePnP(pts3d, pts2d, self.intrinsics, self.dist_coeffs, **kwargs)
+        ret, rvec, tvec = cv2.solvePnP(pts3d, pts2d, self.intrinsics, self.dist_coeffs, **kwargs)
+        
+        # Save for the next frame if successful
+        if ret:
+            self.rvec = rvec
+            self.tvec = tvec
         
         # Convert Rodrigues vector to rotation matrix
         rmat, _ = cv2.Rodrigues(rvec)
         
         # Return pose
-        return rmat, tvec
+        return rmat, tvec, ret
     
     def run_matches(self, view_matches:List[ViewMatches], **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         pass

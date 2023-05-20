@@ -27,9 +27,11 @@ class BaseMatcher:
     def _test_ratio(self, matches):
         good_matches = []
         for match in matches:
+            if len(match) < 2: continue
             m, n = match
             if m.distance < self.test_ratio_th * n.distance:
                 good_matches.append(m)
+        
         return good_matches
     
     def _test_symmetry(self, matches12, matches21):
@@ -95,7 +97,7 @@ class BaseMatcher:
         matches = self.run(query.descriptors, preset.descriptors)
         if len(matches) == 0:
             return None
-        view_matches = ViewMatches(query.view, preset.view, matches)
+        view_matches = ViewMatches(query, preset, matches)
         return view_matches
 
     def run_views_desc(self, query: ViewDescription, preset: List[ViewDescription]) -> List[ViewMatches]:

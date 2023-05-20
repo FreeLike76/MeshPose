@@ -2,10 +2,7 @@ import cv2
 import numpy as np
 import open3d as o3d
 
-from tqdm import tqdm
-from loguru import logger
-
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from .. import io
 from ..features.extractors import BaseFeatureExtractor
@@ -44,3 +41,26 @@ def preprocess(data: io.DataIOBase,
         result[extractor_name] = views_desc
     
     return result
+
+def compose(rmat: np.ndarray, tvec: np.ndarray) -> np.ndarray:
+    extrinsics = np.zeros([3, 4], dtype=np.float32)
+    extrinsics[:3, :3] = rmat
+    extrinsics[:3, 3] = tvec.reshape((3,))
+    extrinsics = np.vstack((extrinsics, [0, 0, 0, 1]))
+    
+    return extrinsics
+
+def decompose(extrinsics: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    rmat = extrinsics[:3, :3]
+    tvec = extrinsics[:3, 3]
+    
+    return rmat, tvec
+
+def compare(pose1: np.ndarray, pose2: np.ndarray) -> Tuple[float, float]:
+    R1, t1 = decompose(pose1)
+    R2, t2 = decompose(pose2)
+    value = (np.linalg.inv(R2) @ R1 @ np.array([0, 0, 1]).T) * np.array([0, 0, 1])
+    radians = np.arccos(value.sum())
+    radians = 0 if np.isnan(radians) else radians
+    distance = np.linalg.norm(t2 - t1)
+    return radians * 180 / np.pi, distance
