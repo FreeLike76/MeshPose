@@ -16,6 +16,7 @@ class ImageLocalization:
                  feature_extractor: BaseFeatureExtractor,
                  matcher: BaseMatcher,
                  pose_solver: BasePoseSolver,
+                 image_retrieval: None = None,
                  verbose: bool = False):
         """
         Image localization pipeline.
@@ -43,6 +44,8 @@ class ImageLocalization:
         self.feature_extractor = feature_extractor
         self.matcher = matcher
         self.pose_solver = pose_solver
+        
+        self.image_retrieval = None
         
     def run(self, query: QueryView) -> Tuple[bool, np.ndarray, np.ndarray]:
         """

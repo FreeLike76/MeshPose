@@ -32,7 +32,7 @@ def main(data_p: Path, verbosity: int = False):
         query_desc = views_desc[i]
         
         # Init pose solver
-        ps = pose_solver.ImagePoseSolver(query_desc.view.camera.intrinsics, min_inliers=20)
+        ps = pose_solver.ImagePoseSolver(query_desc.view.camera.intrinsics, min_inliers=20, verbose=True)
 
         image_loc = localization.ImageLocalization(
             views_desc=views_desc[:i] + views_desc[i + 1:],
@@ -40,7 +40,7 @@ def main(data_p: Path, verbosity: int = False):
             matcher=mat,
             pose_solver=ps,
             verbose=True)
-        #image_loc.mesh = io.functional.load_mesh(data.get_mesh_p())
+        
         # Run on image
         status, rmat, tvec = image_loc.run(query_desc.view)
         
@@ -61,7 +61,7 @@ def main(data_p: Path, verbosity: int = False):
         render = scene_render.run()
         
         # Show
-        display = visualization.functional.compose(image, render, max_dim=1080)
+        display = visualization.functional.compose(image, render, max_dim=1440)
         cv2.imshow("image", display)
         cv2.waitKey(0)
         

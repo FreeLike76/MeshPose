@@ -9,12 +9,14 @@ from .data import ViewMatches
 
 class BasePoseSolver:
     def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),
-                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33) -> None:
+                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33, verbose:bool = False) -> None:
         self.intrinsics = intrinsics
         self.dist_coeffs = dist_coeffs
         self.min_matches = min_matches
         self.min_inliers = min_inliers
         self.min_inliers_ratio = min_inliers_ratio
+        
+        self.verbose = verbose
     
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         raise NotImplementedError("PoseSolver is an abstract class. Use a concrete implementation instead.")
@@ -32,8 +34,8 @@ class ImagePoseSolver(BasePoseSolver):
     Basic implementation of a Pose Solver for a single image.
     """
     def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),
-                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33) -> None:
-        super().__init__(intrinsics, dist_coeffs, min_matches, min_inliers, min_inliers_ratio)
+                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33, verbose:bool = False) -> None:
+        super().__init__(intrinsics, dist_coeffs, min_matches, min_inliers, min_inliers_ratio, verbose)
         
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
         self._validate(pts2d, pts3d)
@@ -44,11 +46,13 @@ class ImagePoseSolver(BasePoseSolver):
         if ret:
             len_inliers = len(inliers)
             rel_inliers = len_inliers / len(pts3d)
+            if self.verbose:
+                logger.info(f"Estimated {len_inliers} inliers ({rel_inliers*100:.2f}%).")
+                
+            if len_inliers < self.min_inliers:
+                return False, None, None
             
-            print("Total inliers:", len_inliers)
-            print("Rel. inliers:", rel_inliers)
-            
-            if len_inliers < self.min_inliers or rel_inliers < self.min_inliers_ratio:
+            if rel_inliers < self.min_inliers_ratio:
                 return False, None, None
         
         #ret, rvec, tvec = cv2.solvePnP(pts3d.astype(np.float32), pts2d.astype(np.float32),
@@ -71,6 +75,7 @@ class ImagePoseSolver(BasePoseSolver):
         
         # Test if enough matches, min is 4
         if best_n < self.min_matches:
+            logger.warning(f"Not enough matches {best_n}/{self.min_matches}!")
             return False, None, None
         
         # Run PnP
@@ -83,8 +88,8 @@ class VideoPoseSolver(ImagePoseSolver):
     Make sure to set track=True when calling run() for consecutive frames.
     """
     def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),
-                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33) -> None:
-        super().__init__(intrinsics, dist_coeffs, min_matches, min_inliers, min_inliers_ratio)
+                 min_matches:int = 4, min_inliers:int = 4, min_inliers_ratio:float = 0.33, verbose:bool = False) -> None:
+        super().__init__(intrinsics, dist_coeffs, min_matches, min_inliers, min_inliers_ratio, verbose)
         
         # Prev frame pose
         self.rvec = None
