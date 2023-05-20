@@ -16,18 +16,25 @@ def main(data_p: Path, verbosity: int = False):
 
     # Load data
     views = data.load_views()
-    views_desc = data.load_view_descriptions("orb_orb", views)
+    views_desc = data.load_view_descriptions("gftt_sift", views)
     mesh = io.functional.load_mesh(data.get_mesh_p())
   
+    ## Init feature extractor
+    #fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
+    ## Init matcher
+    #mat = matchers.BruteForceMatcher(
+    #    params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
+    #    test_ratio=True, test_ratio_th=0.7,
+    #    test_symmetry=False, verbose=False)
+    
     # Init feature extractor
-    fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
-
+    fe = extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1)
     # Init matcher
     mat = matchers.BruteForceMatcher(
-        params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
+        params={"normType": cv2.NORM_L2, "crossCheck": False},
         test_ratio=True, test_ratio_th=0.7,
         test_symmetry=False, verbose=False)
-        
+    
     for i in range(0, len(views_desc) - 1, 25):
         query_desc = views_desc[i]
         

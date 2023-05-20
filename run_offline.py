@@ -15,8 +15,8 @@ def main(data_p: Path, verbosity: int = False):
     
     # Define feature extractors
     feature_extractors = {
-        "orb_orb": ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        #"gftt_sift": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        #"orb": ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
+        "gftt_sift": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         #"gftt_rootsift": ClassicalFeatureExtractor(detector="GFTT", descriptor="ROOT_SIFT", verbosity=1),
         #"sift_sift": ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor

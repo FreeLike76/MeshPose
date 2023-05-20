@@ -60,7 +60,6 @@ class BaseMatcher:
             List of matches.
         """
         assert self.matcher is not None, logger.error("Matcher is not initialized! Use BFMatcher or FLANNMatcher.")
-        
         matches = []
         if self.test_symmetry:
             matches12 = self.matcher.knnMatch(desc1, desc2, k=2)
