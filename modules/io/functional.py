@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import open3d as o3d
 
+from PIL import Image
+
 from loguru import logger
 
 import json
@@ -18,8 +20,11 @@ def validate_create_dir(path:Path):
 def load_image(path:Path) -> np.ndarray:
     # TODO: low, rewrite with PIL
     validate_file(path)
-    
-    image = cv2.imread(str(path))
+    # Load
+    image = Image.open(path)
+    # RGB -> BGR
+    image = np.flip(np.array(image), axis=2)
+    #image = cv2.imread(str(path))
     return image
 
 def load_np(path:Path) -> np.ndarray:
