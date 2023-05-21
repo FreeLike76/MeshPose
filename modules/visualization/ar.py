@@ -50,11 +50,11 @@ class SceneAR:
         """
         assert self.extrinsics is not None, logger.error("Extrinsics have not been set!")
         
-        env_depth = self.env_scene.get_depth_buffer()
-        ar_depth = self.ar_scene.get_depth_buffer()
+        env_depth = self.env_scene.get_depth_buffer(center_intrinsics=True)
+        ar_depth = self.ar_scene.get_depth_buffer(center_intrinsics=True)
         ar_frame = self.ar_render.run()
         
-        mask = ar_depth < env_depth
+        mask = (ar_depth < env_depth) & (ar_depth > 0)
         
         _frame = frame.copy()
         _frame[mask] = ar_frame[mask]

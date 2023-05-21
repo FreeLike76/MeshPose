@@ -21,4 +21,4 @@ class PoseRetrieval(BaseImageRetrieval):
             self.tvecs.append(tvec)
     
     def query(self, view:PresetView, n:int=50)-> List[int]:
-        
+        pass

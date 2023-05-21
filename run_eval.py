@@ -1,21 +1,23 @@
 import cv2
 import numpy as np
 import pandas as pd
+
+from tqdm import tqdm
 from loguru import logger
 
 import argparse
 from pathlib import Path
 
-from modules import io, localization, pose_solver
+from modules import io, localization, pose_solver, utils
 from modules.localization import preprocess
 from modules.features import extractors, matchers
 
-def eval(fe, mat, views_desc, val: float = 0.25):
+def eval(fe, mat, views_desc, val: float = 0.25, desc="FE"):
     # Result table
     result = {"TP": 0, "TN": 0, "FP": 0}
     # Run
     step = max(1, int(1 / val))
-    for i in range(0, len(views_desc) - 1, step):
+    for i in tqdm(range(0, len(views_desc) - 1, step), desc=utils.tqdm_description("eval", desc)):
         query_desc = views_desc[i]
         # Init image localization
         ps = pose_solver.ImagePoseSolver(query_desc.view.camera.intrinsics, min_inliers=20)
@@ -46,7 +48,6 @@ def eval(fe, mat, views_desc, val: float = 0.25):
     
     return result
         
-
 def main(data_p: Path, verbosity: int = False):
     # Load project
     data = io.DataIO3DSA(data_p, verbose=verbosity)
@@ -54,16 +55,16 @@ def main(data_p: Path, verbosity: int = False):
     # Define feature extractors
     feature_extractors = {
         "ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        "ORB2": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        #"SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
-        #"ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
-        #"GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        "SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+        "ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
+        "GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
     }
     
     # Preprocess dataset
     precomputed_features = preprocess(data, feature_extractors, verbose=verbosity)
     
+    # Run evaluation
     result = {}
     for extractor_name, views_desc in precomputed_features.items():
         fe = feature_extractors[extractor_name]
@@ -73,8 +74,7 @@ def main(data_p: Path, verbosity: int = False):
                 "crossCheck": False},
             test_ratio=True,
             test_ratio_th=0.7)
-        
-        result[extractor_name] = eval(fe, mat, views_desc)
+        result[extractor_name] = eval(fe, mat, views_desc, desc=extractor_name)
     
     # Print results
     result = pd.DataFrame(result)
@@ -85,8 +85,8 @@ def args_parser():
         description="Preprocess a dataset with a set of feature extractors.")
     
     parser.add_argument(
-        "--data", type=str, required=False, default="data/office_model_1/",
-        help="Path to a dataset folder. Default is data/office_model_1/")
+        "--data", type=str, required=False, default="data/first_room/data",
+        help="Path to a dataset folder. Default is 'data/first_room/data'.")
     
     parser.add_argument(
         "--verbosity", type=int, choices=[0, 1, 2], default=1)

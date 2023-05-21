@@ -4,10 +4,12 @@ from loguru import logger
 
 from typing import List, Tuple
 
+
 from ..data import ViewDescription, QueryView
 from ..features.matchers import BaseMatcher
 from ..features.extractors import BaseFeatureExtractor
 from ..pose_solver import BasePoseSolver
+from ..retrieval import BaseImageRetrieval
 
 # TODO: add retrieval
 class ImageLocalization:
@@ -16,7 +18,7 @@ class ImageLocalization:
                  feature_extractor: BaseFeatureExtractor,
                  matcher: BaseMatcher,
                  pose_solver: BasePoseSolver,
-                 image_retrieval: None = None,
+                 image_retrieval: BaseImageRetrieval = None,
                  verbose: bool = False):
         """
         Image localization pipeline.
@@ -45,7 +47,7 @@ class ImageLocalization:
         self.matcher = matcher
         self.pose_solver = pose_solver
         
-        self.image_retrieval = None
+        self.image_retrieval = image_retrieval
         
     def run(self, query: QueryView) -> Tuple[bool, np.ndarray, np.ndarray]:
         """

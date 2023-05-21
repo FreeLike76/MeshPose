@@ -25,13 +25,13 @@ class SceneRender:
         assert self.extrinsics is not None, logger.error("Extrinsics have not been set!")
         
         # Parse intrinsics
-        fx = self.intrinsics[0, 0]
-        fy = self.intrinsics[1, 1]
-        cx = self.intrinsics[0, 2]
-        cy = self.intrinsics[1, 2]
+        fx = self.intrinsics[0, 0] // 2
+        fy = self.intrinsics[1, 1] // 2
+        cx = self.intrinsics[0, 2] // 2
+        cy = self.intrinsics[1, 2] // 2
         
         # Create PinholeCameraIntrinsic object
-        pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(self.width, self.height, fx, fy, cx, cy)
+        pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(self.width // 2, self.height // 2, fx, fy, cx, cy)
 
         # Create PinholeCameraParameters and set its intrinsic and extrinsic
         pinhole_camera_parameters = o3d.camera.PinholeCameraParameters()
@@ -40,7 +40,7 @@ class SceneRender:
         
         # Create visualizer
         vis = o3d.visualization.Visualizer()
-        vis.create_window(window_name="render", visible=False, width=self.width, height=self.height)
+        vis.create_window(window_name="render", visible=False, width=self.width // 2, height=self.height // 2)
         vis.add_geometry(self.mesh)
         
         # Set view control
@@ -58,5 +58,6 @@ class SceneRender:
         
         # Transform to BGR
         image = (image[:, :, ::-1] * 255).astype(np.uint8)
+        image = cv2.resize(image, (self.width, self.height), interpolation=cv2.INTER_LINEAR)
         
         return image

@@ -55,10 +55,6 @@ class ImagePoseSolver(BasePoseSolver):
             if rel_inliers < self.min_inliers_ratio:
                 return False, None, None
         
-        #ret, rvec, tvec = cv2.solvePnP(pts3d.astype(np.float32), pts2d.astype(np.float32),
-        #                               self.intrinsics, self.dist_coeffs,
-        #                               flags=cv2.SOLVEPNP_ITERATIVE)
-        
         # Convert Rodrigues vector to rotation matrix
         rmat, _ = cv2.Rodrigues(rvec)
         
@@ -96,24 +92,55 @@ class VideoPoseSolver(ImagePoseSolver):
         self.tvec = None
         
     def run(self, pts2d:np.ndarray, pts3d:np.ndarray, track:bool=False, **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
+        # Validate params
         self._validate(pts2d, pts3d)
         
-        if track:
-            pass # TODO: use guess from previous frame
+        # Track if possible
+        _track = track and self.rvec is not None and self.tvec is not None
         
-        # Solve PnP
-        ret, rvec, tvec = cv2.solvePnP(pts3d, pts2d, self.intrinsics, self.dist_coeffs, **kwargs)
+        # Solve PnP, RANSAC, Guess
+        ret, rvec, tvec, inliers = cv2.solvePnPRansac(pts3d.astype(np.float32), pts2d[:, ::-1].astype(np.float32),
+                                                      self.intrinsics, self.dist_coeffs, iterationsCount=1000,
+                                                      useExtrinsicGuess=_track, rvec=self.rvec, tvec=self.tvec)
+        # Reset prev position
+        self.rvec = None
+        self.tvec = None
         
-        # Save for the next frame if successful
-        if ret:
-            self.rvec = rvec
-            self.tvec = tvec
+        # Test if valid
+        len_inliers = len(inliers)
+        rel_inliers = len_inliers / len(pts3d)
+        if self.verbose:
+            logger.info(f"Estimated {len_inliers} inliers ({rel_inliers*100:.2f}%).")
+        
+        # Abs test
+        if len_inliers < self.min_inliers:
+            return False, None, None
+        # Rel test
+        if rel_inliers < self.min_inliers_ratio:
+            return False, None, None
+        
+        # Save prev pose
+        self.rvec = rvec
+        self.tvec = tvec
         
         # Convert Rodrigues vector to rotation matrix
         rmat, _ = cv2.Rodrigues(rvec)
         
         # Return pose
-        return rmat, tvec, ret
+        return ret, rmat, tvec
     
     def run_matches(self, view_matches:List[ViewMatches], **kwargs) -> Tuple[bool, np.ndarray, np.ndarray]:
-        pass
+        # Find best view
+        best_n, best_i = 0, 0
+        for view in view_matches:
+            if len(view) > best_n:
+                best_n = len(view)
+                best_i = view_matches.index(view)
+        
+        # Test if enough matches, min is 4
+        if best_n < self.min_matches:
+            logger.warning(f"Not enough matches {best_n}/{self.min_matches}!")
+            return False, None, None
+        
+        # Run PnP
+        return self.run(view_matches[best_i].pts2d, view_matches[best_i].pts3d, **kwargs)

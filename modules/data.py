@@ -4,9 +4,8 @@ import numpy as np
 from loguru import logger
 
 from pathlib import Path
-from typing import Tuple
 
-from . import io
+from .io import functional
 
 def rotate_arkit(extrinsics):
     rotation = np.array([[1, 0, 0, 0],
@@ -34,20 +33,20 @@ class Camera:
         return self.extrinsics[:3, 3]
 
 class View:
-    def __init__(self, id: int, p_image: Path, camera: Camera = None, rotate_img=False):
+    def __init__(self, id: int, p_image: Path, camera: Camera = None, image: np.ndarray = None):
         # Public
         self.id = id
         self.camera = camera
         
         # Private variables
         self._p_image = p_image
-        self._rotate_img = rotate_img
+        self._image = image
     
     @property
     def image(self) -> np.ndarray:
-        image = io.functional.load_image(self._p_image)
-        if self._rotate_img:
-            image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+        image = self._image
+        if image is None:
+            image = functional.load_image(self._p_image)
         return image
 
     @property
@@ -55,12 +54,12 @@ class View:
         return cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
 class PresetView(View):
-    def __init__(self, id: int, p_image: Path, camera: Camera = None):
-        super().__init__(id, p_image, camera)
+    def __init__(self, id: int, p_image: Path = None, camera: Camera = None, image: np.ndarray = None):
+        super().__init__(id, p_image, camera, image)
 
 class QueryView(View):
-    def __init__(self, p_image: Path, camera: Camera = None):
-        super().__init__(0, p_image, camera)
+    def __init__(self, p_image: Path = None, camera: Camera = None, image: np.ndarray = None):
+        super().__init__(0, p_image, camera, image)
 
 class ViewDescription:
     def __init__(self,

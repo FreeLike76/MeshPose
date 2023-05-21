@@ -49,13 +49,20 @@ class RayCaster:
         self.set_intrinsics(view.camera.intrinsics, w, h)
         self.set_extrinsics(view.camera.extrinsics)
     
-    def get_depth_buffer(self) -> np.ndarray:
+    def get_depth_buffer(self, center_intrinsics:bool=False) -> np.ndarray:
         """
         Returns depth buffer of the scene from the current view.
         """
+        if center_intrinsics:
+            intrinsics = self.intrinsics.copy()
+            intrinsics[0, 2] = self.width / 2
+            intrinsics[1, 2] = self.height / 2
+        else:
+            intrinsics = self.intrinsics
+            
         # Init rays
         rays = o3d.t.geometry.RaycastingScene.create_rays_pinhole(
-            self.intrinsics, self.extrinsics, self.width, self.height)
+            intrinsics, self.extrinsics, self.width, self.height)
         
         # Cast rays
         ans = self.scene.cast_rays(rays)

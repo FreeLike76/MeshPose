@@ -2,8 +2,12 @@ import cv2
 import numpy as np
 
 def compose(image:np.ndarray, render:np.ndarray, max_dim:int=720, rot:bool=True):
-    _image = np.rot90(image, 3).copy()
-    _render = np.rot90(render, 3).copy()
+    _image = image.copy()
+    _render = render.copy()
+    
+    if rot:
+        _image = np.rot90(_image, 3)
+        _render = np.rot90(_render, 3)
     
     # Resize to match
     _render = cv2.resize(_render, (_image.shape[1], _image.shape[0]), interpolation=cv2.INTER_LINEAR)

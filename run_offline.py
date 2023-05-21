@@ -16,11 +16,9 @@ def main(data_p: Path, verbosity: int = False):
     # Define feature extractors
     feature_extractors = {
         "ORB": ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        "SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
-        "ROOT_SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
-        "GFTT_SIFT": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
-        #"gftt_rootsift": ClassicalFeatureExtractor(detector="GFTT", descriptor="ROOT_SIFT", verbosity=1),
-        #"sift_sift": ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+        #"SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+        #"ROOT_SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
+        #"GFTT_SIFT": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
     }
     
@@ -36,8 +34,8 @@ def args_parser():
         description="Preprocess a dataset with a set of feature extractors.")
     
     parser.add_argument(
-        "--data", type=str, required=False, default="data/office_model_1/",
-        help="Path to a dataset folder. Default is data/office_model_1/")
+        "--data", type=str, required=False, default="data/first_room/data",
+        help="Path to a dataset folder. Default is data/first_room/data")
     
     parser.add_argument(
         "--verbosity", type=int, choices=[0, 1, 2], default=1)

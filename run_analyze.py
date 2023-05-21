@@ -16,26 +16,26 @@ def main(data_p: Path, verbosity: int = False):
 
     # Load data
     views = data.load_views()
-    views_desc = data.load_view_descriptions("gftt_sift", views)
+    views_desc = data.load_view_descriptions("ORB", views)
     mesh = io.functional.load_mesh(data.get_mesh_p())
   
+    # Init feature extractor
+    fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
+    # Init matcher
+    mat = matchers.BruteForceMatcher(
+        params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
+        test_ratio=True, test_ratio_th=0.7,
+        test_symmetry=False, verbose=False)
+    
     ## Init feature extractor
     #fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
     ## Init matcher
     #mat = matchers.BruteForceMatcher(
-    #    params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
+    #    params={"normType": cv2.NORM_L2, "crossCheck": False},
     #    test_ratio=True, test_ratio_th=0.7,
     #    test_symmetry=False, verbose=False)
-    
-    # Init feature extractor
-    fe = extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1)
-    # Init matcher
-    mat = matchers.BruteForceMatcher(
-        params={"normType": cv2.NORM_L2, "crossCheck": False},
-        test_ratio=True, test_ratio_th=0.7,
-        test_symmetry=False, verbose=False)
-    
-    for i in range(0, len(views_desc) - 1, 25):
+    step = int(len(views_desc) // 25) + 1
+    for i in range(0, len(views_desc) - 1, step):
         query_desc = views_desc[i]
         
         # Init pose solver
@@ -69,6 +69,7 @@ def main(data_p: Path, verbosity: int = False):
         
         # Show
         display = visualization.functional.compose(image, render, max_dim=1440)
+        
         cv2.imshow("image", display)
         cv2.waitKey(0)
         
@@ -81,8 +82,8 @@ def args_parser():
         description="Preprocess a dataset with a set of feature extractors.")
     
     parser.add_argument(
-        "--data", type=str, required=False, default="data/office_model_1/",
-        help="Path to a dataset folder. Default is data/office_model_1/")
+        "--data", type=str, required=False, default="data/first_room/data",
+        help="Path to a dataset folder. Default is data/first_room/data")
     
     parser.add_argument(
         "--verbosity", type=int, choices=[0, 1, 2], default=1)
