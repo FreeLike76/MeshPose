@@ -42,9 +42,13 @@ class PoseRetrieval(BaseImageRetrieval):
         pose_difference = np.zeros(self.rvecs.shape[0], dtype=np.float32)
         
         for i, (R2, t2) in enumerate(zip(self.rvecs, self.tvecs)):
-            radians = (np.linalg.inv(R2) @ R1 @ np.array([0, 0, 1]).T) * np.array([0, 0, 1])
-            radians = np.arccos(radians.sum())
-            radians = 0 if np.isnan(radians) else radians / np.pi
+            value = (np.linalg.inv(R2) @ R1 @ np.array([0, 0, 1]).T) * np.array([0, 0, 1])
+            value = value.sum()
+            
+            radians = 0
+            if -1 < value < 1:
+                radians = np.arccos(value) / np.pi
+            
             distance = np.linalg.norm(t2 - t1)
             
             # Calculate pose difference

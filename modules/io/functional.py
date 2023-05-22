@@ -18,13 +18,8 @@ def validate_create_dir(path:Path):
     path.mkdir(parents=True, exist_ok=True)
 
 def load_image(path:Path) -> np.ndarray:
-    # TODO: low, rewrite with PIL
     validate_file(path)
-    # Load
-    image = Image.open(path)
-    # RGB -> BGR
-    image = np.flip(np.array(image), axis=2)
-    #image = cv2.imread(str(path))
+    image = cv2.imread(str(path), cv2.IMREAD_COLOR | cv2.IMREAD_IGNORE_ORIENTATION)
     return image
 
 def load_np(path:Path) -> np.ndarray:

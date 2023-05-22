@@ -78,12 +78,17 @@ class ImageLocalization:
             return False, None, None
         
         # Run retrieval
-        if self.verbose: logger.info(f"Running retrieval.")
-        # TODO: retrieval
+        indices = np.arange(len(self.views_desc))
+        if self.image_retrieval is not None:
+            if self.verbose: logger.info(f"Running retrieval.")
+            indices = self.image_retrieval.query(query_desc)
         
+        # Get retrieved
+        match_views = [self.views_desc[i] for i in indices if i != drop]
+            
         # Match features
         if self.verbose: logger.info(f"Matching descriptors.")
-        matches = self.matcher.run_views_desc(query_desc, self.views_desc)
+        matches = self.matcher.run_views_desc(query_desc, match_views)
         
         # Solve pose
         if self.verbose: logger.info(f"Solving pose.")

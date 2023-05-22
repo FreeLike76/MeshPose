@@ -20,15 +20,15 @@ def main(paths: Dict[str, Path], verbosity: int = False):
     views_desc = data.load_view_descriptions("ORB", views)
     mesh = io.functional.load_mesh(data.get_mesh_p())
     
-    # Load video
-    video = cv2.VideoCapture(str(paths["video"]))
-    camera = Camera(views[0].camera.intrinsics)
+    # Define camera params
+    intrinsics = views_desc[0].view.camera.intrinsics
+    h, w = views_desc[0].view.image.shape[:2]
     
     # Load AR if provided
     ar_mesh = io.functional.load_mesh(paths["ar"]) if "ar" in paths.keys() else None
     
     # Create image retrieval
-    ret = retrieval.PoseRetrieval(n=0.2)
+    ret = retrieval.PoseRetrieval()
     ret.train(views_desc)
     
     # Create feature extractor
@@ -41,7 +41,8 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         test_symmetry=False, verbose=False)
     
     # Create pose solver
-    ps = pose_solver.VideoPoseSolver(camera.intrinsics, min_inliers=20, verbose=True)
+    ps = pose_solver.VideoPoseSolver(intrinsics,
+                                     min_inliers=20, verbose=True)
     
     # Create localization pipeline
     video_loc = localization.VideoLocalization(
@@ -52,23 +53,17 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         track_image_retrieval=ret,
         verbose=True)
     
-    # Run video
-    every = 10
-    counter = 0
-    while video.isOpened():
-        counter += 1
-        # Read video
-        ret, frame = video.read()
-        if not ret: break
-        
-        if counter % every != 0: continue
-        counter = 0
-        
-        query_view = QueryView(None, camera, frame)
+    # Create visualization
+    scene_ar = visualization.SceneAR(mesh, ar_mesh,
+                                     intrinsics, h, w)
+    
+    for i in range(0, len(views_desc)):
+        query_view = views_desc[i].view
+        query_image = query_view.image
         
         # Perfrome localization
         ts = time()
-        status, rmat, tvec = video_loc.run(query_view)
+        status, rmat, tvec = video_loc.run(query_view, drop=i)
         if verbosity: logger.info(f"Localization took {round((time() - ts) * 1000, 2)} ms.")
         
         # Check if valid
@@ -83,12 +78,12 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         #scene_render = visualization.SceneRender(mesh, query_view.camera.intrinsics,
         #                                         frame.shape[0], frame.shape[1],
         #                                         extrinsics=extrinsics)
-        scene_ar = visualization.SceneAR(mesh, ar_mesh,
-                                         query_view.camera.intrinsics,
-                                         frame.shape[0], frame.shape[1],
-                                         extrinsics=extrinsics)
-        display = scene_ar.run(frame)
-        display = cv2.resize(display, (frame.shape[1] // 2, frame.shape[0] // 2))
+        
+        # Render
+        scene_ar.set_extrinsics(extrinsics)
+        display = scene_ar.run(query_image)
+        display = cv2.resize(display, (query_image.shape[1] // 2, query_image.shape[0] // 2))
+        display = np.rot90(display, 3)
         cv2.imshow("image", display)
         cv2.waitKey(1)
     
@@ -102,10 +97,6 @@ def args_parser():
     parser.add_argument(
         "--data", type=str, required=False, default="data/first_room/data",
         help="Path to a dataset folder. Default is data/first_room/data")
-    
-    parser.add_argument(
-        "--video", type=str, required=False, default="data/first_room/video1.MOV",
-        help="Path to a video. Default is data/first_room/video1.MOV")
     
     parser.add_argument(
         "--ar", type=str, required=False, default="data/first_room/ar/plane.obj", # TODO: none
@@ -124,7 +115,6 @@ if __name__ == "__main__":
     
     paths = {}
     paths["data"] = args.data
-    paths["video"] = args.video
     if args.ar is not None: paths["ar"] = args.ar
     
     # Validate

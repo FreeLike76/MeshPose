@@ -59,8 +59,13 @@ def decompose(extrinsics: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 def compare(pose1: np.ndarray, pose2: np.ndarray) -> Tuple[float, float]:
     R1, t1 = decompose(pose1)
     R2, t2 = decompose(pose2)
+    
     value = (np.linalg.inv(R2) @ R1 @ np.array([0, 0, 1]).T) * np.array([0, 0, 1])
-    radians = np.arccos(value.sum())
-    radians = 0 if np.isnan(radians) else radians
+    value = value.sum()
+    
+    radians = 0
+    if -1 < value < 1:
+        radians = np.arccos(value) 
+    
     distance = np.linalg.norm(t2 - t1)
     return radians * 180 / np.pi, distance

@@ -107,9 +107,7 @@ class VideoLocalization(ImageLocalization):
                 indices = self.track_image_retrieval.query(query_desc)
 
             # Get retrieved
-            match_views = self.track_views_desc
-            if len(indices) < len(self.track_views_desc):
-                match_views = [self.track_views_desc[i] for i in indices if i != drop]
+            match_views = [self.track_views_desc[i] for i in indices if i != drop]
             
             # Match features
             if self.verbose: logger.info(f"Matching descriptors.")
