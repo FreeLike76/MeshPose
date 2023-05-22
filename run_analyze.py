@@ -71,7 +71,7 @@ def main(data_p: Path, verbosity: int = False):
         display = visualization.functional.compose(image, render, max_dim=1440)
         
         cv2.imshow("image", display)
-        cv2.waitKey(0)
+        cv2.waitKey(1)
         
         # AR
         #scene_ar = visualization.SceneAR()

@@ -49,7 +49,7 @@ class ImageLocalization:
         
         self.image_retrieval = image_retrieval
         
-    def run(self, query: QueryView) -> Tuple[bool, np.ndarray, np.ndarray]:
+    def run(self, query: QueryView, drop:int=None) -> Tuple[bool, np.ndarray, np.ndarray]:
         """
         Run localization on a single query view.
         

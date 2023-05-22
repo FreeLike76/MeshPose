@@ -8,7 +8,7 @@ from typing import Dict
 from pathlib import Path
 from time import time
 
-from modules import io, localization, visualization
+from modules import io, localization, visualization, retrieval
 from modules.data import QueryView, Camera
 from modules.features import extractors, matchers
 from modules import pose_solver
@@ -27,23 +27,32 @@ def main(paths: Dict[str, Path], verbosity: int = False):
     # Load AR if provided
     ar_mesh = io.functional.load_mesh(paths["ar"]) if "ar" in paths.keys() else None
     
-    # Init video localization pipeline
+    # Create image retrieval
+    ret = retrieval.PoseRetrieval(n=0.2)
+    ret.train(views_desc)
+    
+    # Create feature extractor
     fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
     
+    # Create matcher
     mat = matchers.BruteForceMatcher(
         params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
         test_ratio=True, test_ratio_th=0.7,
         test_symmetry=False, verbose=False)
     
+    # Create pose solver
     ps = pose_solver.VideoPoseSolver(camera.intrinsics, min_inliers=20, verbose=True)
     
+    # Create localization pipeline
     video_loc = localization.VideoLocalization(
         views_desc=views_desc,
         feature_extractor=fe,
         matcher=mat,
         pose_solver=ps,
+        track_image_retrieval=ret,
         verbose=True)
     
+    # Run video
     every = 10
     counter = 0
     while video.isOpened():
@@ -55,13 +64,14 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         if counter % every != 0: continue
         counter = 0
         
-        # Frame time
-        ts = time()
-        
         query_view = QueryView(None, camera, frame)
         
-        # Run on image
+        # Perfrome localization
+        ts = time()
         status, rmat, tvec = video_loc.run(query_view)
+        if verbosity: logger.info(f"Localization took {round((time() - ts) * 1000, 2)} ms.")
+        
+        # Check if valid
         if not status:
             logger.warning("Localization failed!")
             continue
@@ -82,8 +92,6 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         cv2.imshow("image", display)
         cv2.waitKey(1)
     
-        te = time()
-        if verbosity: logger.info(f"Localization took {round((te - ts) * 1000, 2)} ms.")
     else:
         logger.error("Video reading failed!")
     

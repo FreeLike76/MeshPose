@@ -6,7 +6,7 @@ import argparse
 from pathlib import Path
 
 from modules import io
-from modules.localization import preprocess
+from modules.localization.functional import preprocess
 from modules.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
 
 def main(data_p: Path, verbosity: int = False):

@@ -4,12 +4,13 @@ from loguru import logger
 
 from typing import List, Tuple
 
-from ..retrieval import BaseImageRetrieval
+from . import functional
 from .image_localization import ImageLocalization
 from ..data import ViewDescription, QueryView
 from ..features.matchers import BaseMatcher
 from ..features.extractors import BaseFeatureExtractor
 from ..pose_solver import BasePoseSolver
+from .. import retrieval
 
 # TODO: video localization
 class VideoLocalization(ImageLocalization):
@@ -19,13 +20,13 @@ class VideoLocalization(ImageLocalization):
                  feature_extractor: BaseFeatureExtractor,
                  matcher: BaseMatcher,
                  pose_solver: BasePoseSolver,
-                 image_retrieval: BaseImageRetrieval = None,
+                 image_retrieval: retrieval.BaseImageRetrieval = None,
                  
                  # Params for pose tracking
                  track_views_desc: List[ViewDescription] = None,
                  track_feature_extractor: BaseFeatureExtractor = None,
                  track_matcher: BaseMatcher = None,
-                 track_image_retrieval: BaseImageRetrieval = None,
+                 track_image_retrieval: retrieval.BaseImageRetrieval = None,
                  
                  verbose: bool = False):
         """
@@ -68,7 +69,7 @@ class VideoLocalization(ImageLocalization):
         """
         self._track = False
     
-    def run(self, query: QueryView) -> Tuple[bool, np.ndarray, np.ndarray]:
+    def run(self, query: QueryView, drop:int=None) -> Tuple[bool, np.ndarray, np.ndarray]:
         """
         Run localization on a single query view.
         
@@ -88,7 +89,7 @@ class VideoLocalization(ImageLocalization):
         """
         
         if not self._track:
-            ret, rmat, tvec = super().run(query)
+            ret, rmat, tvec = super().run(query, drop=drop)
         else:
             # Extract features
             if self.verbose: logger.info(f"Extracting features from query view.")
@@ -101,11 +102,18 @@ class VideoLocalization(ImageLocalization):
             
             # Run retrieval
             if self.verbose: logger.info(f"Running retrieval.")
-            # TODO: retrieval
+            indices = np.arange(len(self.track_views_desc))
+            if self.track_image_retrieval is not None:
+                indices = self.track_image_retrieval.query(query_desc)
+
+            # Get retrieved
+            match_views = self.track_views_desc
+            if len(indices) < len(self.track_views_desc):
+                match_views = [self.track_views_desc[i] for i in indices if i != drop]
             
             # Match features
             if self.verbose: logger.info(f"Matching descriptors.")
-            matches = self.track_matcher.run_views_desc(query_desc, self.track_views_desc)
+            matches = self.track_matcher.run_views_desc(query_desc, match_views)
             
             # Solve pose
             if self.verbose: logger.info(f"Solving pose.")
@@ -113,4 +121,7 @@ class VideoLocalization(ImageLocalization):
         
         # Update tracking status
         self._track = ret
+        if self._track and isinstance(self.track_image_retrieval, retrieval.PoseRetrieval):
+            self.track_image_retrieval.set_pose(rmat, tvec)
+        
         return ret, rmat, tvec

@@ -9,7 +9,7 @@ import argparse
 from pathlib import Path
 
 from modules import io, localization, pose_solver, utils
-from modules.localization import preprocess
+from modules.localization.functional import preprocess
 from modules.features import extractors, matchers
 
 def eval(fe, mat, views_desc, val: float = 0.25, desc="FE"):
@@ -55,9 +55,9 @@ def main(data_p: Path, verbosity: int = False):
     # Define feature extractors
     feature_extractors = {
         "ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        "SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
-        "ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
-        "GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        #"SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+        #"ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
+        #"GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
     }
     
