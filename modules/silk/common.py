@@ -17,11 +17,6 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from .silk_model import SiLKVGG as SiLK
 from .silk_model import ParametricVGG
-#from .silk_model import load_model_from_checkpoint
-
-#from silk.silk.backbones.silk.silk import SiLKVGG as SiLK
-#from silk.silk.backbones.superpoint.vgg import ParametricVGG
-#from silk.silk.config.model import load_model_from_checkpoint
 
 SILK_NMS = 0  # NMS radius, 0 = disabled
 SILK_BORDER = 0  # remove detection on border, 0 = disabled

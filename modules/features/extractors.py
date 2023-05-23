@@ -145,14 +145,14 @@ class SilkFeatureExtractor(BaseFeatureExtractor):
         self.verbosity = verbosity
         
         # Try to import SILK
-        #try:
-        from ..silk_module import get_model, preprocess_image, from_feature_coords_to_image_coords
-        self.model = get_model(checkpoints_p, device=device, top_k=top_k,
-                               default_outputs=("sparse_positions", "sparse_descriptors"))
-        self.preprocess_image = preprocess_image
-        self.conv_coords = from_feature_coords_to_image_coords
-        #except:
-        #    logger.error("Error while loading SILK model!")
+        try:
+            from ..silk import get_model, preprocess_image, from_feature_coords_to_image_coords
+            self.model = get_model(checkpoints_p, device=device, top_k=top_k,
+                                   default_outputs=("sparse_positions", "sparse_descriptors"))
+            self.preprocess_image = preprocess_image
+            self.conv_coords = from_feature_coords_to_image_coords
+        except:
+            logger.error("Error while loading SILK model!")
         
     def run(self, image:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
