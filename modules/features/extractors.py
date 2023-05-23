@@ -114,6 +114,7 @@ class ClassicalFeatureExtractor(BaseFeatureExtractor):
             "class": self.__class__.__name__,
             "detector": self.detector.to_json(),
             "descriptor": self.descriptor.to_json(),
+            "verbosity": self.verbosity,
             }
         
     @staticmethod
@@ -121,7 +122,7 @@ class ClassicalFeatureExtractor(BaseFeatureExtractor):
         return ClassicalFeatureExtractor(
             detector=Detector.from_json(json["detector"]),
             descriptor=Descriptor.from_json(json["descriptor"]),
-            verbose=json.get("verbose", False),
+            verbosity=json.get("verbosity", 1),
             )
 
 # TODO: Implement this
@@ -130,29 +131,60 @@ class SilkFeatureExtractor(BaseFeatureExtractor):
     Class for learning-based feature extractor, named SILK.
     """
     def __init__(self, checkpoints_p: Path, 
-                 device: str = "cpu", verbose: bool = False) -> None:
+                 device: str = "cpu", verbosity: int = 1, top_k:int=1000, down_s:int=4) -> None:
         super().__init__(SilkFeatureExtractor)
-        
+        # Assert torch and torchvision are available
         assert TORCH_AVAILABLE, logger.error(
             "PyTorch and TorchVision are not available! Install them to use SilkFeatureExtractor.")
         assert checkpoints_p.exists() and checkpoints_p.is_file(), logger.error(
             f"Checkpoints file {checkpoints_p} does not exist!")
-        # Load model, etc
-    
+        
+        # Params
+        self.device = device
+        self.down_s = down_s
+        self.verbosity = verbosity
+        
+        # Try to import SILK
+        #try:
+        from ..silk_module import get_model, preprocess_image, from_feature_coords_to_image_coords
+        self.model = get_model(checkpoints_p, device=device, top_k=top_k,
+                               default_outputs=("sparse_positions", "sparse_descriptors"))
+        self.preprocess_image = preprocess_image
+        self.conv_coords = from_feature_coords_to_image_coords
+        #except:
+        #    logger.error("Error while loading SILK model!")
+        
     def run(self, image:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
         Runs feature extractor on image and returns keypoints and descriptors.
         """
-        raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
+        # Preprocess image
+        image_pt = self.preprocess_image(image, device=self.device, res=self.down_s)
+        sparse_positions, sparse_descriptors = self.model(image_pt)
+        sparse_positions = self.conv_coords(self.model, sparse_positions)
+        
+        # Convert to numpy
+        kp = (sparse_positions[0].detach().cpu().numpy()[:, :2] * self.down_s).astype(np.int32)
+        des = sparse_descriptors[0].detach().cpu().numpy().astype(np.float32)
+        
+        return kp, des
     
     def run_view(self, view:PresetView) -> ViewDescription:
         """
         Runs feature extractor on a view and returns a single FrameDescription.
         """
-        raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
+        kp, des = self.run(view.image)
+        return ViewDescription(view, keypoints_2d=kp, descriptors=des)
     
     def run_views(self, views:List[PresetView]) -> List[ViewDescription]:
         """
         Runs feature extractor on all views and returns a list of FrameDescriptions.
         """
-        raise NotImplementedError("FeatureExtractor is an abstract class. Use a concrete implementation instead.")
+        descriptions = []
+        for view in tqdm(
+            views, desc=tqdm_description("modules.features.extractors", "Feature Extraction"),
+            disable=self.verbosity > 1):
+            
+            description = self.run_view(view)
+            descriptions.append(description)
+        return descriptions

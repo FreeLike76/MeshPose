@@ -20,6 +20,7 @@ def main(data_p: Path, verbosity: int = False):
         #"ROOT_SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
         #"GFTT_SIFT": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
+        "SILK": SilkFeatureExtractor(checkpoints_p=Path("checkpoints/silk.pth"), device="gpu", verbose=verbosity),
     }
     
     # Preprocess dataset

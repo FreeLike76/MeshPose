@@ -54,11 +54,12 @@ def main(data_p: Path, verbosity: int = False):
     
     # Define feature extractors
     feature_extractors = {
-        "ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
+        #"ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
         #"SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
         #"ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
         #"GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
+        "SILK": extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", verbosity=verbosity),
     }
     
     # Preprocess dataset
@@ -68,9 +69,15 @@ def main(data_p: Path, verbosity: int = False):
     result = {}
     for extractor_name, views_desc in precomputed_features.items():
         fe = feature_extractors[extractor_name]
+        # Norm type
+        normType = cv2.NORM_L2
+        if isinstance(fe, extractors.ClassicalFeatureExtractor) \
+            and fe.descriptor.algorithm in ["ORB", "BRIEF"]:
+            normType = cv2.NORM_HAMMING
+        # Create matcher
         mat = matchers.BruteForceMatcher(
             params={
-                "normType": cv2.NORM_HAMMING if fe.descriptor.algorithm in ["ORB", "BRIEF"] else cv2.NORM_L2,
+                "normType": normType,
                 "crossCheck": False},
             test_ratio=True,
             test_ratio_th=0.7)
@@ -85,8 +92,8 @@ def args_parser():
         description="Preprocess a dataset with a set of feature extractors.")
     
     parser.add_argument(
-        "--data", type=str, required=False, default="data/first_room/data",
-        help="Path to a dataset folder. Default is 'data/first_room/data'.")
+        "--data", type=str, required=False, default="data/second_room/data",
+        help="Path to a dataset folder. Default is 'data/second_room/data'.")
     
     parser.add_argument(
         "--verbosity", type=int, choices=[0, 1, 2], default=1)
