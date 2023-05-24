@@ -75,11 +75,6 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         extrinsics = localization.functional.compose(rmat, tvec)
         
         # Render
-        #scene_render = visualization.SceneRender(mesh, query_view.camera.intrinsics,
-        #                                         frame.shape[0], frame.shape[1],
-        #                                         extrinsics=extrinsics)
-        
-        # Render
         scene_ar.set_extrinsics(extrinsics)
         display = scene_ar.run(query_image)
         display = cv2.resize(display, (query_image.shape[1] // 2, query_image.shape[0] // 2))
@@ -99,7 +94,7 @@ def args_parser():
         help="Path to a dataset folder. Default is data/first_room/data")
     
     parser.add_argument(
-        "--ar", type=str, required=False, default="data/first_room/ar/plane.obj", # TODO: none
+        "--ar", type=str, required=False, default="data/first_room/ar/plane.obj",
         help="Path to AR-Mesh.")
     
     parser.add_argument(

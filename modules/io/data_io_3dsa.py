@@ -32,7 +32,7 @@ class DataIO3DSA(DataIOBase):
         
         # Try loading the meta data
         if self._load_meta():
-            if self.verbose: logger.info(f"Loaded project metadata from {root_p.name}.")
+            if self.verbose: logger.info(f"Loaded project metadata from {root_p}.")
         else:
             self._scan_meta()
             self._save_meta()
