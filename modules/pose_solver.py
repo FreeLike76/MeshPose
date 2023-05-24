@@ -106,6 +106,9 @@ class VideoPoseSolver(ImagePoseSolver):
         self.rvec = None
         self.tvec = None
         
+        if not ret:
+            return False, None, None
+        
         # Test if valid
         len_inliers = len(inliers)
         rel_inliers = len_inliers / len(pts3d)
