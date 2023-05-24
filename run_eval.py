@@ -16,17 +16,16 @@ def eval(fe, mat, views_desc, val: float = 0.25, desc="FE"):
     # Result table
     result = {"TP": 0, "TN": 0, "FP": 0}
     # Run
+    ps = pose_solver.ImagePoseSolver(views_desc[0].view.camera.intrinsics, min_inliers=20)
+    image_loc = localization.ImageLocalization(views_desc=views_desc, feature_extractor=fe,
+                                               matcher=mat, pose_solver=ps)
+    
     step = max(1, int(1 / val))
     for i in tqdm(range(0, len(views_desc) - 1, step), desc=utils.tqdm_description("eval", desc)):
         query_desc = views_desc[i]
-        # Init image localization
-        ps = pose_solver.ImagePoseSolver(query_desc.view.camera.intrinsics, min_inliers=20)
-        image_loc = localization.ImageLocalization(
-            views_desc=views_desc[:i] + views_desc[i + 1:],
-            feature_extractor=fe, matcher=mat, pose_solver=ps)
         
         # Run on image
-        status, rmat, tvec = image_loc.run(query_desc.view)
+        status, rmat, tvec = image_loc.run(query_desc.view, drop=i)
         
         # Next if failed
         if not status:
@@ -55,21 +54,18 @@ def main(data_p: Path, verbosity: int = False):
     # Define feature extractors
     feature_extractors = {
         # Classical
-        "ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
+        #"ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
         "SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
-        "ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
-        "GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        #"ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
+        #"GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
-        "SILK": extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=300, verbosity=verbosity),
+        #"SILK": extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity),
     }
-    
-    # Preprocess dataset
-    precomputed_features = preprocess(data, feature_extractors, verbose=verbosity)
-    
     # Run evaluation
     result = {}
-    for extractor_name, views_desc in precomputed_features.items():
-        fe = feature_extractors[extractor_name]
+    for name, fe in feature_extractors.items():
+        precomputed_features = preprocess(data, {name: fe}, verbose=verbosity)
+        views_desc = precomputed_features[name]
         # Norm type
         normType = cv2.NORM_L2
         if isinstance(fe, extractors.ClassicalFeatureExtractor) \
@@ -82,7 +78,9 @@ def main(data_p: Path, verbosity: int = False):
                 "crossCheck": False},
             test_ratio=True,
             test_ratio_th=0.7)
-        result[extractor_name] = eval(fe, mat, views_desc, desc=extractor_name)
+        result[name] = eval(fe, mat, views_desc, desc=name)
+        # Free memory
+        del fe, views_desc, mat
     
     # Print results
     result = pd.DataFrame(result)

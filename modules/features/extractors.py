@@ -153,6 +153,8 @@ class SilkFeatureExtractor(BaseFeatureExtractor):
             self.conv_coords = from_feature_coords_to_image_coords
         except:
             logger.error("Error while loading SILK model!")
+            
+        if verbosity: logger.info(f"Created feature extractor with SILK model from {checkpoints_p}.")
         
     def run(self, image:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
