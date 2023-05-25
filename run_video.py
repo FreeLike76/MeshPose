@@ -28,7 +28,7 @@ def main(paths: Dict[str, Path], verbosity: int = False):
     ar_mesh = io.functional.load_mesh(paths["ar"]) if "ar" in paths.keys() else None
     
     # Create image retrieval
-    ret = retrieval.PoseRetrieval()
+    ret = retrieval.PoseRetrieval(n=0.2)
     ret.train(views_desc)
     
     # Create feature extractor

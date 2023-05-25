@@ -62,17 +62,22 @@ class BaseMatcher:
         assert self.matcher is not None, logger.error("Matcher is not initialized! Use BFMatcher or FLANNMatcher.")
         matches = []
         if self.test_symmetry:
-            matches12 = self.matcher.knnMatch(desc1, desc2, k=2)
-            matches21 = self.matcher.knnMatch(desc2, desc1, k=2)
             if self.test_ratio:
+                matches12 = self.matcher.knnMatch(desc1, desc2, k=2)
+                matches21 = self.matcher.knnMatch(desc2, desc1, k=2)
                 matches12 = self._test_ratio(matches12)
                 matches21 = self._test_ratio(matches21)
+            else:
+                matches12 = self.matcher.match(desc1, desc2)
+                matches21 = self.matcher.match(desc2, desc1)
             matches = self._test_symmetry(matches12, matches21)
         else:
-            matches = self.matcher.knnMatch(desc1, desc2, k=2)
             if self.test_ratio:
+                matches = self.matcher.knnMatch(desc1, desc2, k=2)
                 matches = self._test_ratio(matches)
-        
+            else:
+                matches = self.matcher.match(desc1, desc2)
+
         if self.verbose: logger.info(f"Detected {len(matches)} matches.")
         return matches
 
