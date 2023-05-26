@@ -3,37 +3,39 @@ import open3d as o3d
 
 from loguru import logger
 
+from typing import List
+from copy import deepcopy
+
 from .render import SceneRender
-from ..raycaster import RayCaster
 
 class SceneAR:
-    def __init__(self,
-                 env_mesh:o3d.geometry.TriangleMesh,
-                 ar_mesh:o3d.geometry.TriangleMesh,
-                 intrinsics:np.ndarray,
-                 height:int, width:int,
-                 extrinsics:np.ndarray = None) -> None:
+    def __init__(self, meshes:List[o3d.geometry.TriangleMesh], labels:List[bool],
+                 intrinsics:np.ndarray, height:int, width:int,
+                 extrinsics:np.ndarray = None, downscale:int = 4) -> None:
         # Save params
         self.intrinsics = intrinsics
         self.height = height
-        self.wight = width
+        self.width = width
         self.extrinsics = extrinsics
         
-        # Init scenes
-        self.env_scene = RayCaster(env_mesh, intrinsics, height, width, extrinsics)
-        self.ar_scene = RayCaster(ar_mesh, intrinsics, height, width, extrinsics)
-        self.ar_render = SceneRender(ar_mesh, intrinsics, height, width, extrinsics)
+        # Data
+        self.meshes = deepcopy(meshes)
+        self.labels = labels
+        
+        # Raycaster
+        self.scene = o3d.t.geometry.RaycastingScene()
+        for mesh in self.meshes:
+            self.scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(mesh))
+            
+        # Render
+        self.renderer = SceneRender([mesh for i, mesh in enumerate(meshes) if labels[i]], intrinsics, height, width, downscale=downscale)
     
     def set_extrinsics(self, extrinsics:np.ndarray):
         """
         Updates extrinsics of the scene.
         """
         self.extrinsics = extrinsics
-        
-        # Update scenes
-        self.env_scene.set_extrinsics(extrinsics)
-        self.ar_scene.set_extrinsics(extrinsics)
-        self.ar_render.set_extrinsics(extrinsics)
+        self.renderer.set_extrinsics(extrinsics)
     
     def run(self, frame:np.ndarray) -> np.ndarray:
         """
@@ -50,13 +52,19 @@ class SceneAR:
         """
         assert self.extrinsics is not None, logger.error("Extrinsics have not been set!")
         
-        env_depth = self.env_scene.get_depth_buffer(center_intrinsics=False)
-        ar_depth = self.ar_scene.get_depth_buffer(center_intrinsics=False)
-        ar_frame = self.ar_render.run()
+        rays = o3d.t.geometry.RaycastingScene.create_rays_pinhole(
+            self.intrinsics, self.extrinsics, self.width, self.height)
         
-        mask = (ar_depth < env_depth) & (ar_depth > 0)
+        # Cast rays
+        ans = self.scene.cast_rays(rays)
         
-        _frame = frame.copy()
-        _frame[mask] = ar_frame[mask]
-        
-        return _frame
+        # Create mask
+        geometry = ans["geometry_ids"].cpu().numpy()
+        mask = np.zeros((self.height, self.width), dtype=bool)
+        for i in range(len(self.meshes)):
+            if self.labels[i]:
+                mask |= geometry == i
+        # Run renderer
+        vis = self.renderer.run()
+        frame[mask] = vis[mask]
+        return frame

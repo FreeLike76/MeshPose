@@ -54,8 +54,7 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         verbose=True)
     
     # Create visualization
-    scene_ar = visualization.SceneAR(mesh, ar_mesh,
-                                     intrinsics, h, w)
+    scene_ar = visualization.SceneAR([mesh, ar_mesh], [0, 1], intrinsics, h, w)
     
     for i in range(0, len(views_desc)):
         query_view = views_desc[i].view
