@@ -17,7 +17,7 @@ def main(paths: Dict[str, Path], verbosity: int = False):
     # Load data
     data = io.DataIO3DSA(paths["data"], verbose=verbosity)
     views = data.load_views()
-    views_desc = data.load_view_descriptions("ORB", views)
+    views_desc = data.load_view_descriptions("SILK", views)
     mesh = io.functional.load_mesh(data.get_mesh_p())
     
     # Define camera params
@@ -32,13 +32,17 @@ def main(paths: Dict[str, Path], verbosity: int = False):
     ret.train(views_desc)
     
     # Create feature extractor
-    fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
+    #fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
+    fe = extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=1000, verbosity=verbosity)
     
     # Create matcher
-    mat = matchers.BruteForceMatcher(
-        params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
-        test_ratio=True, test_ratio_th=0.7,
-        test_symmetry=False, verbose=False)
+    #mat = matchers.BruteForceMatcher(
+    #    params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
+    #    test_ratio=True, test_ratio_th=0.7,
+    #    test_symmetry=False, verbose=False)
+    
+    #mat = matchers.PytorchL2Matcher(device="cuda")
+    mat = matchers.BatchedPytorchL2Matcher(device="cuda")
     
     # Create pose solver
     ps = pose_solver.VideoPoseSolver(intrinsics,
@@ -54,7 +58,7 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         verbose=True)
     
     # Create visualization
-    scene_ar = visualization.SceneAR([mesh, ar_mesh], [0, 1], intrinsics, h, w)
+    scene_ar = visualization.SceneAR([mesh, ar_mesh], [0, 1], intrinsics, h, w, downscale=2.0)
     
     for i in range(0, len(views_desc)):
         query_view = views_desc[i].view
@@ -80,9 +84,6 @@ def main(paths: Dict[str, Path], verbosity: int = False):
         display = np.rot90(display, 3)
         cv2.imshow("image", display)
         cv2.waitKey(1)
-    
-    else:
-        logger.error("Video reading failed!")
     
 def args_parser():
     parser = argparse.ArgumentParser(

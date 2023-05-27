@@ -11,7 +11,7 @@ from .render import SceneRender
 class SceneAR:
     def __init__(self, meshes:List[o3d.geometry.TriangleMesh], labels:List[bool],
                  intrinsics:np.ndarray, height:int, width:int,
-                 extrinsics:np.ndarray = None, downscale:int = 4) -> None:
+                 extrinsics:np.ndarray = None, downscale:float = 2.0) -> None:
         # Save params
         self.intrinsics = intrinsics
         self.height = height

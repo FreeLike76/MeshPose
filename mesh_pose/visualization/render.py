@@ -12,7 +12,7 @@ class SceneRender:
     """
     def __init__(self, meshes:List[o3d.geometry.TriangleMesh],
                  intrinsics:np.ndarray, height:int, width:int,
-                 extrinsics:np.ndarray = None, downscale:int=2) -> None:
+                 extrinsics:np.ndarray = None, downscale:float=2.0) -> None:
         self.meshes = meshes if isinstance(meshes, list) else [meshes]
         self.intrinsics = intrinsics
         self.height = height
@@ -23,8 +23,8 @@ class SceneRender:
         # Create visualizer
         self.vis = o3d.visualization.Visualizer()
         self.vis.create_window(window_name="render", visible=False,
-                               width=self.width // downscale,
-                               height=self.height // downscale)
+                               width=int(self.width // downscale),
+                               height=int(self.height // downscale))
         # Add meshes
         for mesh in self.meshes:
             self.vis.add_geometry(mesh)
@@ -43,15 +43,14 @@ class SceneRender:
         cy = self.intrinsics[1, 2] // self.downscale
         
         # Create PinholeCameraIntrinsic object
-        pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(self.width // self.downscale,
-                                                                     self.height // self.downscale,
+        pinhole_camera_intrinsic = o3d.camera.PinholeCameraIntrinsic(int(self.width // self.downscale),
+                                                                     int(self.height // self.downscale),
                                                                      fx, fy, cx, cy)
 
         # Create PinholeCameraParameters and set its intrinsic and extrinsic
         pinhole_camera_parameters = o3d.camera.PinholeCameraParameters()
         pinhole_camera_parameters.intrinsic = pinhole_camera_intrinsic
         pinhole_camera_parameters.extrinsic = self.extrinsics
-        
         
         # Set view control
         ctr = self.vis.get_view_control()

@@ -26,12 +26,13 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
     #fe_norm = cv2.NORM_L2
     
     # Create matcher
-    mat = matchers.BruteForceMatcher(
-        params={"normType": fe_norm, "crossCheck": False},
-        test_ratio=True, test_ratio_th=0.7,
-        test_symmetry=False, verbose=False)
+    #mat = matchers.BruteForceMatcher(
+    #    params={"normType": fe_norm, "crossCheck": False},
+    #    test_ratio=True, test_ratio_th=0.7,
+    #    test_symmetry=False, verbose=False)
     
-    #mat = matchers.PytorchL2Matcher(device="cuda")
+    mat = matchers.PytorchL2Matcher(device="cuda")
+    #mat = matchers.BatchedPytorchL2Matcher(device="cuda")
     
     def_intrinsics = views_desc[0].view.camera.intrinsics
     def_h, def_w = views_desc[0].view.image.shape[:2]
@@ -46,7 +47,8 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
     
     # Render object
     scene_render = visualization.SceneRender(mesh, def_intrinsics, def_h, def_w)
-        
+    pose_render = visualization.ScenePose(mesh)
+    
     # Run 25 photos
     step = int(len(views_desc) // n) + 1
     for i in range(0, len(views_desc), step):
@@ -66,6 +68,7 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
         logger.info(f"Localization successful! Error: {round(ang, 3)} deg, {round(dist, 2)} m.")
         
         # Render
+        pose_render.add_pose(extrinsics)
         scene_render.set_extrinsics(extrinsics)
         render = scene_render.run()
         
@@ -75,6 +78,8 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
         
         cv2.imshow("image", display)
         cv2.waitKey(1)
+    
+    pose_render.run(scale=0.35)
     
 def args_parser():
     parser = argparse.ArgumentParser(

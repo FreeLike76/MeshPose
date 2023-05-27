@@ -168,11 +168,9 @@ class FlannMatcher(BaseMatcher):
         self.matcher = cv2.FlannBasedMatcher(index_params, search_params)
 
 class PytorchL2Matcher(BaseMatcher):
-    def __init__(self, p:int=2, eps:float=1e-6, device="cuda"):
+    def __init__(self, eps:float=1e-6, device="cuda"):
         assert TORCH_AVAILABLE, logger.error("Pytorch is not installed!")
-        
         # Params
-        self.p = p
         self.eps = eps
         self.device = device
     
@@ -248,13 +246,81 @@ class PytorchL2Matcher(BaseMatcher):
         view_matches: List[ViewMatches]
             List of objects containing information about the matches.
         """
+        # Get query desc
         query_desc = torch.from_numpy(query.descriptors).float().to(self.device)
         
         views_matches = []
-        for preset_view in preset:          
+        for i, preset_view in enumerate(preset):
+            # Get preset desc
             preset_desc = torch.from_numpy(preset_view.descriptors).float().to(self.device)
+            
             # Match descriptors
             match_dists, matches_idxs = self.run(query_desc, preset_desc)
+            
+            if len(matches_idxs) == 0:
+                return None
+
+            # Calculate score
+            dist_sum = match_dists.sum()
+            score = 1. / (dist_sum + self.eps)
+
+            # To numpy
+            query_matches = matches_idxs[:, 0]
+            preset_matches = matches_idxs[:, 1]
+            
+            # Save
+            matches = ViewMatches(query, preset_view, query_matches, preset_matches, score=score)
+            views_matches.append(matches)
+        return views_matches
+    
+    
+class BatchedPytorchL2Matcher(PytorchL2Matcher):
+    def __init__(self, eps:float=1e-6, device="cuda"):
+        assert TORCH_AVAILABLE, logger.error("Pytorch is not installed!")
+        super().__init__(eps=eps, device=device)
+    
+    def run_views_desc(self, query: ViewDescription, preset: List[ViewDescription]) -> List[ViewMatches]:
+        """
+        Performs batched pairwise matching of a query ViewDescription object and a list of preset ViewDescription objects.
+        
+        Parameters:
+        --------
+        query: ViewDescription
+            Query view.
+        preset: List[ViewDescription]
+            List of preset views.
+        
+        Returns:
+        --------
+        view_matches: List[ViewMatches]
+            List of objects containing information about the matches.
+        """
+        # Get dimentions
+        b = len(preset)
+        n = np.max([p.descriptors.shape[0] for p in preset])
+        
+        # Stack query in a batch
+        query_desc = np.stack([query.descriptors for _ in range(b)])
+        query_desc = torch.from_numpy(query_desc).float().to(self.device)
+        
+        # Pad and batch all preset descriptors
+        preset_desc_all = np.stack([
+            np.pad(p.descriptors, ((0, n - p.descriptors.shape[0]), (0, 0)), mode="constant", constant_values=np.inf) for p in preset])
+        preset_desc_all = torch.from_numpy(preset_desc_all).float().to(self.device)
+        
+        # Find distance all-to-all
+        cdist = torch.cdist(query_desc, preset_desc_all)
+        
+        # Free up memory
+        del query_desc, preset_desc_all
+        
+        views_matches = []
+        for i, preset_view in enumerate(preset):
+            # Match descriptors
+            pd_size = preset_view.descriptors.shape[0]
+            match_dists, matches_idxs = self.run(None, None,
+                                                 distance_matrix=cdist[i, :, :pd_size])
+            
             if len(matches_idxs) == 0:
                 return None
 
