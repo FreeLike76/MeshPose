@@ -5,7 +5,7 @@ from loguru import logger
 
 from pathlib import Path
 
-from .io import functional
+from mesh_pose.io import functional
 
 def rotate_arkit(extrinsics):
     rotation = np.array([[1, 0, 0, 0],

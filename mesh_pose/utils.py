@@ -11,7 +11,6 @@ from datetime import datetime
 import logging
 from loguru import logger
 
-
 class Serializable:
     def to_json(self) -> dict:
         raise NotImplementedError("Serializable is an abstract class. Use a concrete implementation instead.")

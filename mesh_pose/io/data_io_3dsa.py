@@ -8,10 +8,9 @@ from glob import glob
 from pathlib import Path
 from typing import List
 
-from . import functional
-from .data_io_base import DataIOBase
-from ..data import PresetView, Camera, ViewDescription
-from ..utils import tqdm_description
+from mesh_pose.io import functional, DataIOBase
+from mesh_pose.data import PresetView, Camera, ViewDescription
+from mesh_pose.utils import tqdm_description
 
 class DataIO3DSA(DataIOBase):
     def __init__(self, root_p: Path, verbose: bool = False) -> None:

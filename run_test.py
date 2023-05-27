@@ -6,9 +6,9 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from modules import io, localization, visualization
-from modules.features import extractors, matchers
-from modules import pose_solver
+from mesh_pose import io, localization, visualization
+from mesh_pose.features import extractors, matchers
+from mesh_pose import pose_solver
 
 def main(data_p: Path, n:int=25, verbosity: int = False):
     # Load project

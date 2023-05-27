@@ -4,13 +4,12 @@ from loguru import logger
 
 from typing import List, Tuple
 
-from . import functional
-from .image_localization import ImageLocalization
-from ..data import ViewDescription, QueryView
-from ..features.matchers import BaseMatcher
-from ..features.extractors import BaseFeatureExtractor
-from ..pose_solver import BasePoseSolver
-from .. import retrieval
+from mesh_pose import retrieval
+from mesh_pose.localization import ImageLocalization
+from mesh_pose.data import ViewDescription, QueryView
+from mesh_pose.features.matchers import BaseMatcher
+from mesh_pose.features.extractors import BaseFeatureExtractor
+from mesh_pose.pose_solver import BasePoseSolver
 
 # TODO: video localization
 class VideoLocalization(ImageLocalization):

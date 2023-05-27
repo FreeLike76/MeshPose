@@ -5,9 +5,9 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from modules import io
-from modules.localization.functional import preprocess
-from modules.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
+from mesh_pose import io
+from mesh_pose.localization.functional import preprocess
+from mesh_pose.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
 
 def main(data_p: Path, verbosity: int = False):
     # Load project

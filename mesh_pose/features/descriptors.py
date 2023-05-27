@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 from loguru import logger
 
-from ..utils import Serializable
+from mesh_pose.utils import Serializable
 
 DEFINED_DESCRIPTORS = {
     "ORB": cv2.ORB,

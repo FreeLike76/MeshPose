@@ -4,14 +4,12 @@ from loguru import logger
 
 from typing import List, Tuple
 
-
 from ..data import ViewDescription, QueryView
-from ..features.matchers import BaseMatcher
-from ..features.extractors import BaseFeatureExtractor
-from ..pose_solver import BasePoseSolver
-from ..retrieval import BaseImageRetrieval
+from mesh_pose.features.matchers import BaseMatcher
+from mesh_pose.features.extractors import BaseFeatureExtractor
+from mesh_pose.pose_solver import BasePoseSolver
+from mesh_pose.retrieval import BaseImageRetrieval
 
-# TODO: add retrieval
 class ImageLocalization:
     def __init__(self,
                  views_desc: List[ViewDescription],

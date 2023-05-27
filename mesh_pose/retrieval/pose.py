@@ -3,9 +3,9 @@ import numpy as np
 
 from typing import List
 
-from ..data import ViewDescription, PresetView
-from .base import BaseImageRetrieval
-from ..localization import functional
+from mesh_pose.retrieval import BaseImageRetrieval
+from mesh_pose.localization import functional
+from mesh_pose.data import ViewDescription, PresetView
 
 class PoseRetrieval(BaseImageRetrieval):
     def __init__(self, n:float=0.5):
