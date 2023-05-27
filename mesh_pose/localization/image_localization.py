@@ -4,6 +4,8 @@ from loguru import logger
 
 from typing import List, Tuple
 
+from time import time
+
 from ..data import ViewDescription, QueryView
 from mesh_pose.features.matchers import BaseMatcher
 from mesh_pose.features.extractors import BaseFeatureExtractor
@@ -67,8 +69,10 @@ class ImageLocalization:
         """
         
         # Extract features
+        ts = time()
         if self.verbose: logger.info(f"Extracting features from query view.")
         query_desc = self.feature_extractor.run_view(query)
+        if self.verbose: logger.info(f"Feature extraction took {round((time() - ts) * 1000, 2)} ms.")
         
         # Check if valid
         if not query_desc.is_2d():
@@ -85,11 +89,15 @@ class ImageLocalization:
         match_views = [self.views_desc[i] for i in indices if i != drop]
             
         # Match features
+        ts = time()
         if self.verbose: logger.info(f"Matching descriptors.")
         matches = self.matcher.run_views_desc(query_desc, match_views)
+        if self.verbose: logger.info(f"Matching took {round((time() - ts) * 1000, 2)} ms.")
         
         # Solve pose
+        ts = time()
         if self.verbose: logger.info(f"Solving pose.")
         pose = self.pose_solver.run_matches(matches)
+        if self.verbose: logger.info(f"Pose solving took {round((time() - ts) * 1000, 2)} ms.")
         
         return pose

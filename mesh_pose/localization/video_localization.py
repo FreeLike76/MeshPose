@@ -4,8 +4,8 @@ from loguru import logger
 
 from typing import List, Tuple
 
+from .image_localization import ImageLocalization
 from mesh_pose import retrieval
-from mesh_pose.localization import ImageLocalization
 from mesh_pose.data import ViewDescription, QueryView
 from mesh_pose.features.matchers import BaseMatcher
 from mesh_pose.features.extractors import BaseFeatureExtractor

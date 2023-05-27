@@ -8,7 +8,7 @@ from glob import glob
 from pathlib import Path
 from typing import List
 
-from mesh_pose.io import functional, DataIOBase
+from . import functional, DataIOBase
 from mesh_pose.data import PresetView, Camera, ViewDescription
 from mesh_pose.utils import tqdm_description
 

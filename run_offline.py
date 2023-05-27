@@ -7,7 +7,7 @@ from pathlib import Path
 
 from mesh_pose import io
 from mesh_pose.localization.functional import preprocess
-from mesh_pose.features.extractors import ClassicalFeatureExtractor, SilkFeatureExtractor
+from mesh_pose.features import extractors
 
 def main(data_p: Path, verbosity: int = False):
     # Load project
@@ -15,12 +15,12 @@ def main(data_p: Path, verbosity: int = False):
     
     # Define feature extractors
     feature_extractors = {
-        "ORB": ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        #"SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
-        #"ROOT_SIFT": ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
-        #"GFTT_SIFT": ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        "ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
+        #"SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+        #"ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
+        #"GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
         # SilkFeatureExtractor
-        #"SILK": SilkFeatureExtractor(checkpoints_p=Path("checkpoints/silk.pth"), device="gpu", verbose=verbosity),
+        "SILK": extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity),
     }
     
     # Preprocess dataset

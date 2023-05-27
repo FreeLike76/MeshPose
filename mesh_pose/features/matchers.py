@@ -1,6 +1,12 @@
 import cv2
 import numpy as np
 
+TORCH_AVAILABLE = True
+try:
+    import torch
+except:
+    TORCH_AVAILABLE = False
+
 from copy import deepcopy
 from loguru import logger
 
@@ -101,7 +107,12 @@ class BaseMatcher:
         matches = self.run(query.descriptors, preset.descriptors)
         if len(matches) == 0:
             return None
-        view_matches = ViewMatches(query, preset, matches)
+        
+        # To numpy
+        query_matches = np.array([m.queryIdx for m in matches], dtype=np.int32)
+        preset_matches = np.array([m.trainIdx for m in matches], dtype=np.int32)
+        
+        view_matches = ViewMatches(query, preset, query_matches, preset_matches)
         return view_matches
 
     def run_views_desc(self, query: ViewDescription, preset: List[ViewDescription]) -> List[ViewMatches]:
@@ -155,3 +166,107 @@ class FlannMatcher(BaseMatcher):
         self.index_params = deepcopy(index_params)
         self.search_params = deepcopy(search_params)
         self.matcher = cv2.FlannBasedMatcher(index_params, search_params)
+
+class PytorchL2Matcher(BaseMatcher):
+    def __init__(self, p:int=2, eps:float=1e-6, device="cuda"):
+        assert TORCH_AVAILABLE, logger.error("Pytorch is not installed!")
+        
+        # Params
+        self.p = p
+        self.eps = eps
+        self.device = device
+    
+    def run(self, desc1:torch.Tensor, desc2:torch.Tensor, distance_matrix=None):
+        # Get distance matrix
+        if distance_matrix is None:
+            distance_matrix = torch.cdist(desc1, desc2)
+        
+        ms = min(distance_matrix.size(0), distance_matrix.size(1))
+        match_dists, idxs_in_2 = torch.min(distance_matrix, dim=1)
+        match_dists2, idxs_in_1 = torch.min(distance_matrix, dim=0)
+        minsize_idxs = torch.arange(ms, device=distance_matrix.device)
+
+        if distance_matrix.size(0) <= distance_matrix.size(1):
+            mutual_nns = minsize_idxs == idxs_in_1[idxs_in_2][:ms]
+            matches_idxs = torch.cat([minsize_idxs.view(-1, 1), idxs_in_2.view(-1, 1)], dim=1)[mutual_nns]
+            match_dists = match_dists[mutual_nns]
+        else:
+            mutual_nns = minsize_idxs == idxs_in_2[idxs_in_1][:ms]
+            matches_idxs = torch.cat([idxs_in_1.view(-1, 1), minsize_idxs.view(-1, 1)], dim=1)[mutual_nns]
+            match_dists = match_dists2[mutual_nns]
+        
+        return match_dists.view(-1, 1).cpu().numpy(), matches_idxs.view(-1, 2).cpu().numpy()
+    
+    def run_view_desc(self, query: ViewDescription, preset: ViewDescription) -> ViewMatches:
+        """
+        Performs pairwise matching of two ViewDescription objects.
+        
+        Parameters:
+        --------
+        query: ViewDescription
+            Query view.
+        preset: ViewDescription
+            Preset view.
+        
+        Returns:
+        --------
+        view_matches: ViewMatches
+            Object containing information about the matches.
+        """
+        query_desc = torch.from_numpy(query.descriptors).float().to(self.device)
+        preset_desc = torch.from_numpy(preset.descriptors).float().to(self.device)
+        
+        # Match descriptors
+        match_dists, matches_idxs = self.run(query_desc, preset_desc)
+        if len(matches_idxs) == 0:
+            return None
+        
+        # Calculate score
+        dist_sum = match_dists.sum()
+        score = 1. / (dist_sum + self.eps)
+        
+        # To numpy
+        query_matches = matches_idxs[:, 0]
+        preset_matches = matches_idxs[:, 1]
+        
+        view_matches = ViewMatches(query, preset, query_matches, preset_matches, score=score)
+        return view_matches
+    
+    def run_views_desc(self, query: ViewDescription, preset: List[ViewDescription]) -> List[ViewMatches]:
+        """
+        Performs pairwise matching of a query ViewDescription object and a list of preset ViewDescription objects.
+        
+        Parameters:
+        --------
+        query: ViewDescription
+            Query view.
+        preset: List[ViewDescription]
+            List of preset views.
+        
+        Returns:
+        --------
+        view_matches: List[ViewMatches]
+            List of objects containing information about the matches.
+        """
+        query_desc = torch.from_numpy(query.descriptors).float().to(self.device)
+        
+        views_matches = []
+        for preset_view in preset:          
+            preset_desc = torch.from_numpy(preset_view.descriptors).float().to(self.device)
+            # Match descriptors
+            match_dists, matches_idxs = self.run(query_desc, preset_desc)
+            if len(matches_idxs) == 0:
+                return None
+
+            # Calculate score
+            dist_sum = match_dists.sum()
+            score = 1. / (dist_sum + self.eps)
+
+            # To numpy
+            query_matches = matches_idxs[:, 0]
+            preset_matches = matches_idxs[:, 1]
+            
+            # Save
+            matches = ViewMatches(query, preset_view, query_matches, preset_matches, score=score)
+            views_matches.append(matches)
+        return views_matches

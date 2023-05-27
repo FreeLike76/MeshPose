@@ -3,7 +3,7 @@ import numpy as np
 
 from typing import List
 
-from mesh_pose.retrieval import BaseImageRetrieval
+from .base import BaseImageRetrieval
 from mesh_pose.localization import functional
 from mesh_pose.data import ViewDescription, PresetView
 

@@ -6,7 +6,7 @@ from loguru import logger
 from typing import List
 from copy import deepcopy
 
-from mesh_pose.visualization.render import SceneRender
+from .render import SceneRender
 
 class SceneAR:
     def __init__(self, meshes:List[o3d.geometry.TriangleMesh], labels:List[bool],

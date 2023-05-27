@@ -7,8 +7,8 @@ from tqdm import tqdm
 from typing import List, Dict, Tuple
 
 
+from .image_localization import ImageLocalization
 from mesh_pose import pose_solver, io
-from mesh_pose.localization import ImageLocalization
 from mesh_pose.raycaster import RayCaster
 from mesh_pose.data import PresetView, ViewDescription
 from mesh_pose.features import extractors, matchers

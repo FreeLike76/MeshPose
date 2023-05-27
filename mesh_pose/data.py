@@ -95,15 +95,20 @@ class ViewDescription:
         self.keypoints_3d = keypoints_3d[mask]
 
 class ViewMatches:
-    def __init__(self, query: ViewDescription, preset: ViewDescription, matches) -> None:
+    def __init__(self, query: ViewDescription, preset: ViewDescription,
+                 query_matches:np.ndarray, preset_matches:np.ndarray,
+                 score:float = 1.0) -> None:
         # Store references to views
         self.query = query
         self.preset = preset
 
+        # Store score
+        self.score = score
+        
         # Store matches
-        self.query_matches = np.array([m.queryIdx for m in matches], dtype=np.int32)
-        self.preset_matches = np.array([m.trainIdx for m in matches], dtype=np.int32)
-
+        self.query_matches = query_matches
+        self.preset_matches = preset_matches
+        
     def __len__(self):
         return min(len(self.query_matches), len(self.preset_matches))
     

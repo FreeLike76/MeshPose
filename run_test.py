@@ -21,19 +21,32 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
   
     # Create feature extractor
     fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
+    fe_norm = cv2.NORM_HAMMING
+    #fe = extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity)
+    #fe_norm = cv2.NORM_L2
     
     # Create matcher
     mat = matchers.BruteForceMatcher(
-        params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
+        params={"normType": fe_norm, "crossCheck": False},
         test_ratio=True, test_ratio_th=0.7,
         test_symmetry=False, verbose=False)
     
+    #mat = matchers.PytorchL2Matcher(device="cuda")
+    
+    def_intrinsics = views_desc[0].view.camera.intrinsics
+    def_h, def_w = views_desc[0].view.image.shape[:2]
+    
     # Create pose solver
-    ps = pose_solver.ImagePoseSolver(views_desc[0].view.camera.intrinsics, min_inliers=20, verbose=True)
+    ps = pose_solver.ImagePoseSolver(def_intrinsics, min_inliers=20, verbose=True)
     
     # Create localization pipeline
     image_loc = localization.ImageLocalization(views_desc=views_desc, feature_extractor=fe,
                                                matcher=mat, pose_solver=ps, verbose=True)
+    
+    
+    # Render object
+    scene_render = visualization.SceneRender(mesh, def_intrinsics, def_h, def_w)
+        
     # Run 25 photos
     step = int(len(views_desc) // n) + 1
     for i in range(0, len(views_desc), step):
@@ -53,12 +66,11 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
         logger.info(f"Localization successful! Error: {round(ang, 3)} deg, {round(dist, 2)} m.")
         
         # Render
-        image = query_desc.view.image
-        scene_render = visualization.SceneRender(mesh, query_desc.view.camera.intrinsics, image.shape[0], image.shape[1],
-                                                 extrinsics=extrinsics)
+        scene_render.set_extrinsics(extrinsics)
         render = scene_render.run()
         
         # Show
+        image = query_desc.view.image
         display = visualization.functional.compose(image, render, max_dim=1440)
         
         cv2.imshow("image", display)
@@ -69,7 +81,7 @@ def args_parser():
         description="Preprocess a dataset with a set of feature extractors.")
     
     parser.add_argument(
-        "--data", type=str, required=False, default="data/first_room/data",
+        "--data", type=str, required=False, default="data/second_room/data",
         help="Path to a dataset folder. Default is data/first_room/data")
     
     parser.add_argument(
