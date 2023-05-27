@@ -1,5 +1,9 @@
+import cv2
+import numpy as np
+    
 from loguru import logger
 
+from time import time
 import argparse
 from pathlib import Path
 
@@ -12,15 +16,25 @@ def main(data_p: Path, verbosity: int = 1):
     views = data.load_views()
     views_desc = data.load_view_descriptions("ORB", views)
     
-    ret = DLRetrieval()
+    ret = DLRetrieval(n=0.05)
     ret.train(views_desc)
     
-    from time import time
+    for test in range(0, 351, 50):
+        idx = ret.query(views_desc[test])
+        print(idx)
+        print(len(idx))
+        for i in idx:
+            img1 = views_desc[test].view.image
+            img2 = views_desc[i].view.image
+            img3 = np.concatenate((img1, img2), axis=1)
+            img3 = cv2.resize(img3, (0, 0), fx=0.5, fy=0.5)
+            cv2.imshow("img", img3)
+            cv2.waitKey(0)
     
     ts = time()
     repeat = 50
     for n in range(repeat):
-        idx = ret.query(views_desc[n].view)
+        idx = ret.query(views_desc[n])
     print(f"Time: {(time() - ts) / repeat * 1000} ms")
     print("total time", time() - ts)
 

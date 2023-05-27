@@ -6,11 +6,11 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from mesh_pose import io, localization, visualization
+from mesh_pose import io, localization, visualization, retrieval
 from mesh_pose.features import extractors, matchers
 from mesh_pose import pose_solver
 
-def main(data_p: Path, n:int=25, verbosity: int = False):
+def main(data_p: Path, n:int=25, verbosity: int = False):    
     # Load project
     data = io.DataIO3DSA(data_p, verbose=verbosity)
 
@@ -18,7 +18,11 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
     views = data.load_views()
     views_desc = data.load_view_descriptions("ORB", views)
     mesh = io.functional.load_mesh(data.get_mesh_p())
-  
+    
+    # Define camera params
+    def_intrinsics = views_desc[0].view.camera.intrinsics
+    def_h, def_w = views_desc[0].view.image.shape[:2]
+    
     # Create feature extractor
     fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
     fe_norm = cv2.NORM_HAMMING
@@ -34,16 +38,18 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
     mat = matchers.PytorchL2Matcher(device="cuda")
     #mat = matchers.BatchedPytorchL2Matcher(device="cuda")
     
-    def_intrinsics = views_desc[0].view.camera.intrinsics
-    def_h, def_w = views_desc[0].view.image.shape[:2]
-    
     # Create pose solver
     ps = pose_solver.ImagePoseSolver(def_intrinsics, min_inliers=20, verbose=True)
     
+    # Image retrieval
+    #ret = None
+    ret = retrieval.DLRetrieval(n=0.25)
+    ret.train(views_desc)
+    
     # Create localization pipeline
     image_loc = localization.ImageLocalization(views_desc=views_desc, feature_extractor=fe,
-                                               matcher=mat, pose_solver=ps, verbose=True)
-    
+                                               matcher=mat, pose_solver=ps, verbose=True,
+                                               image_retrieval=ret)
     
     # Render object
     scene_render = visualization.SceneRender(mesh, def_intrinsics, def_h, def_w)

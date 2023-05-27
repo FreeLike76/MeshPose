@@ -1,6 +1,6 @@
 from typing import List
 
-from mesh_pose.data import ViewDescription, PresetView
+from mesh_pose.data import ViewDescription
 
 class BaseImageRetrieval:
     def __init__(self, n:float=0.2):
@@ -9,5 +9,5 @@ class BaseImageRetrieval:
     def train(self, views_desc:List[ViewDescription]):
         raise NotImplementedError("BaseImageRetrieval is an abstract class. Use a concrete implementation instead.")
     
-    def query(self, view:PresetView) -> List[int]:
+    def query(self, query_desc:ViewDescription) -> List[int]:
         raise NotImplementedError("BaseImageRetrieval is an abstract class. Use a concrete implementation instead.")

@@ -5,7 +5,7 @@ from typing import List
 
 from .base import BaseImageRetrieval
 from mesh_pose.localization import functional
-from mesh_pose.data import ViewDescription, PresetView
+from mesh_pose.data import ViewDescription, QueryView
 
 class PoseRetrieval(BaseImageRetrieval):
     def __init__(self, n:float=0.5):
@@ -34,7 +34,7 @@ class PoseRetrieval(BaseImageRetrieval):
         self.last_rmat = rmat
         self.last_tvec = tvec.reshape((-1))
     
-    def query(self, view:PresetView)-> List[int]:
+    def query(self, query_desc:QueryView)-> List[int]:
         # Get last extrinsics
         R1, t1 = self.last_rmat, self.last_tvec
         
