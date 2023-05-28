@@ -134,7 +134,7 @@ class DataIO3DSA(DataIOBase):
         preset_views = []
         for i, codename in enumerate(
             tqdm(self._meta,
-                 desc=tqdm_description("modules.io.data_io_3dsa", "Loading views"),
+                 desc=tqdm_description("mesh_pose.io.data_io_3dsa", "Loading views"),
                  disable=(not self.verbose))):
             
             # Get paths
@@ -170,7 +170,7 @@ class DataIO3DSA(DataIOBase):
         save_kp_3d.mkdir(parents=True, exist_ok=True)
         
         for vd in tqdm(view_desc,
-                       desc=tqdm_description("modules.io.data_io_3dsa", "Saving view desctiptions"),
+                       desc=tqdm_description("mesh_pose.io.data_io_3dsa", "Saving view desctiptions"),
                        disable=(not self.verbose)):
             vd_id = vd.view.id
             codename = self._meta[vd_id]
@@ -199,7 +199,7 @@ class DataIO3DSA(DataIOBase):
         view_iter = 0
         view_desc:List[ViewDescription] = []
         for codename in tqdm(self._meta,
-                             desc=tqdm_description("modules.io.data_io_3dsa", "Loading views desctiption"),
+                             desc=tqdm_description("mesh_pose.io.data_io_3dsa", "Loading views desctiption"),
                              disable=(not self.verbose)):
             # Get paths
             kp_2d_p  = dir_kp_2d / f"{codename}.npy"

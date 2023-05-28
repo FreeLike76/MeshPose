@@ -101,7 +101,7 @@ class ClassicalFeatureExtractor(BaseFeatureExtractor):
         """
         descriptions = []
         for view in tqdm(
-            views, desc=tqdm_description("modules.features.extractors", "Feature Extraction"),
+            views, desc=tqdm_description("mesh_pose.features.extractors", "Feature Extraction"),
             disable=self.verbosity > 1):
             
             description = self.run_view(view)
@@ -183,7 +183,7 @@ class SilkFeatureExtractor(BaseFeatureExtractor):
         """
         descriptions = []
         for view in tqdm(
-            views, desc=tqdm_description("modules.features.extractors", "Feature Extraction"),
+            views, desc=tqdm_description("mesh_pose.features.extractors", "Feature Extraction"),
             disable=self.verbosity > 1):
             
             description = self.run_view(view)

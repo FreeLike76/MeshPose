@@ -133,6 +133,6 @@ class RayCaster:
             A list of ViewDescriptions with 2D keypoints to cast into 3D.
         """
         for view_desc in tqdm(views_desc,
-                              desc=tqdm_description("modules.raycaster", "Ray Casting"),
+                              desc=tqdm_description("mesh_pose.raycaster", "Ray Casting"),
                               disable=(not self.verbose)):
             self.run_view_desc(view_desc)

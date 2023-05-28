@@ -85,7 +85,7 @@ def eval_helper(fe, mat, views_desc, val: float = 0.25, desc="FE"):
                                                matcher=mat, pose_solver=ps)
     
     step = max(1, int(1 / val))
-    for i in tqdm(range(0, len(views_desc) - 1, step), desc=tqdm_description("eval", desc)):
+    for i in tqdm(range(0, len(views_desc) - 1, step), desc=tqdm_description("localization.eval", desc)):
         query_desc = views_desc[i]
         
         # Run on image
