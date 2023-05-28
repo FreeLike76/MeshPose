@@ -11,7 +11,6 @@ from mesh_pose.features.matchers import BaseMatcher
 from mesh_pose.features.extractors import BaseFeatureExtractor
 from mesh_pose.pose_solver import BasePoseSolver
 
-# TODO: video localization
 class VideoLocalization(ImageLocalization):
     def __init__(self,
                  # Params for pose initialization

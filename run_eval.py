@@ -8,9 +8,8 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from mesh_pose import io, localization, pose_solver, utils
-from mesh_pose.localization.functional import preprocess
-from mesh_pose.features import extractors, matchers
+from mesh_pose import io, localization
+from mesh_pose.features import extractors
         
 def main(data_p: Path, verbosity: int = 1):
     # Load project
@@ -20,9 +19,8 @@ def main(data_p: Path, verbosity: int = 1):
     feature_extractors = {
         # Classical
         "ORB": extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1),
-        #"SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
-        #"ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="ROOT_SIFT", verbosity=1),
-        #"GFTT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="SIFT", verbosity=1),
+        "SIFT": extractors.ClassicalFeatureExtractor(detector="SIFT", descriptor="SIFT", verbosity=1),
+        "ROOT_SIFT": extractors.ClassicalFeatureExtractor(detector="GFTT", descriptor="ROOT_SIFT", verbosity=1),
         # SilkFeatureExtractor
         "SILK": extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity)
     }
