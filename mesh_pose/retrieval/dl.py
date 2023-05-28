@@ -78,7 +78,6 @@ class DLRetrieval(BaseImageRetrieval):
             self.descriptions.append(desc)
         
         self.descriptions = torch.stack(self.descriptions)
-        print("yo")
             
     def query(self, query_desc:ViewDescription)-> List[int]:
         assert self.descriptions is not None, logger.error("You must train the model before querying.")
