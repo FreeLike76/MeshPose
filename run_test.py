@@ -16,7 +16,7 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
 
     # Load data
     views = data.load_views()
-    views_desc = data.load_view_descriptions("ORB", views)
+    views_desc = data.load_view_descriptions("SILK", views)
     mesh = io.functional.load_mesh(data.get_mesh_p())
     
     # Define camera params
@@ -24,10 +24,10 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
     def_h, def_w = views_desc[0].view.image.shape[:2]
     
     # Create feature extractor
-    fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
-    fe_norm = cv2.NORM_HAMMING
-    #fe = extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity)
-    #fe_norm = cv2.NORM_L2
+    #fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
+    #fe_norm = cv2.NORM_HAMMING
+    fe = extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity)
+    fe_norm = cv2.NORM_L2
     
     # Create matcher
     #mat = matchers.BruteForceMatcher(

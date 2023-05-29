@@ -24,6 +24,8 @@ class ScenePose:
         for pose in self.poses:
             pose_inv = np.linalg.inv(pose)
             cam = o3d.geometry.TriangleMesh.create_coordinate_frame(size=scale)
+            R = cam.get_rotation_matrix_from_xyz((0, 0, np.pi))
+            cam.rotate(R, center=(0, 0, 0))
             cam.transform(pose_inv)
             obj_3d.append(cam)
         
