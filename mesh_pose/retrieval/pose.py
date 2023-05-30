@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 
+from loguru import logger
+
 from typing import List
 
 from .base import BaseImageRetrieval
@@ -35,6 +37,7 @@ class PoseRetrieval(BaseImageRetrieval):
         self.last_tvec = tvec.reshape((-1))
     
     def query(self, query_desc:QueryView)-> List[int]:
+        assert self.rvecs is not None and self.tvecs is not None, logger.error("You must train the model first!")
         # Get last extrinsics
         R1, t1 = self.last_rmat, self.last_tvec
         

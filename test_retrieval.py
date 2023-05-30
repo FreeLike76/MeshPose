@@ -16,36 +16,43 @@ def main(data_p: Path, verbosity: int = 1):
     views = data.load_views()
     views_desc = data.load_view_descriptions("SILK", views)
     
-    ret = retrieval.DbowRetrieval(n=0.1)
-    #ret = DLRetrieval(n=0.05)
-    ret.train(views_desc)
+    print("Dataset size", len(views_desc))
     
-    for test in range(0, 351, 50):
-        idx = ret.query(views_desc[test])
-        print(idx)
-        print(len(idx))
-        for i in idx:
-            img1 = views_desc[test].view.image
-            img2 = views_desc[i].view.image
-            img3 = np.concatenate((img1, img2), axis=1)
-            img3 = cv2.resize(img3, (0, 0), fx=0.5, fy=0.5)
-            cv2.imshow("img", img3)
-            cv2.waitKey(0)
+    n_repeat = 1
+    
+    ts = time()
+    for n in range(n_repeat):
+        #ret = retrieval.BovwRetrieval(n=0.05)
+        ret = retrieval.DLRetrieval(n=0.05, device="cpu")
+        #ret = retrieval.PoseRetrieval(n=0.05)
+        ret.train(views_desc)
+    print("training_time", (time() - ts) / n_repeat)
+    
+    #for test in range(0, 351, 50):
+    #    idx = ret.query(views_desc[test])
+    #    for i in idx:
+    #        img1 = views_desc[test].view.image
+    #        img2 = views_desc[i].view.image
+    #        img3 = np.concatenate((img1, img2), axis=1)
+    #        img3 = cv2.resize(img3, (0, 0), fx=0.5, fy=0.5)
+    #        cv2.imshow("img", img3)
+    #        cv2.waitKey(0)
     
     ts = time()
     repeat = 50
     for n in range(repeat):
+        #ret.set_extrinsic(views_desc[n].view.camera.extrinsics)
         idx = ret.query(views_desc[n])
     print(f"Time: {(time() - ts) / repeat * 1000} ms")
-    print("total time", time() - ts)
+    #print("total time", time() - ts)
 
 def args_parser():
     parser = argparse.ArgumentParser(
         description="Preprocess a dataset with a set of feature extractors.")
     
     parser.add_argument(
-        "--data", type=str, required=False, default="data/second_room/data",
-        help="Path to a dataset folder. Default is 'data/second_room/data'.")
+        "--data", type=str, required=False, default="data\office_model_1", # data\office_model_1
+        help="Path to a dataset folder. Default is 'data/first_room/data'.")
     
     parser.add_argument(
         "--verbosity", type=int, choices=[0, 1, 2], default=1)

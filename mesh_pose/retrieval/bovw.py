@@ -13,7 +13,7 @@ from .base import BaseImageRetrieval
 from mesh_pose.data import ViewDescription, QueryView
 from mesh_pose.utils import tqdm_description
 
-class DbowRetrieval(BaseImageRetrieval):
+class BovwRetrieval(BaseImageRetrieval):
     def __init__(self, desc_size:int=256, max_iter:int=500, n:float=0.2):
         # Init params
         self.n = n
@@ -56,6 +56,7 @@ class DbowRetrieval(BaseImageRetrieval):
         self.descriptions = np.array(self.descriptions)
             
     def query(self, query_desc:ViewDescription)-> List[int]:
+        assert self.descriptions is not None, logger.error("You must train the model first")
         # Encode query
         desc = self._reshape(query_desc.descriptors)
         labels = self.model.predict(desc)
