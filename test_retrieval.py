@@ -8,15 +8,16 @@ import argparse
 from pathlib import Path
 
 from mesh_pose import io
-from mesh_pose.retrieval import DLRetrieval
+from mesh_pose import retrieval
         
 def main(data_p: Path, verbosity: int = 1):
     # Load project
     data = io.DataIO3DSA(data_p, verbose=verbosity)
     views = data.load_views()
-    views_desc = data.load_view_descriptions("ORB", views)
+    views_desc = data.load_view_descriptions("SILK", views)
     
-    ret = DLRetrieval(n=0.05)
+    ret = retrieval.DbowRetrieval(n=0.1)
+    #ret = DLRetrieval(n=0.05)
     ret.train(views_desc)
     
     for test in range(0, 351, 50):
