@@ -113,26 +113,30 @@ def eval_helper(fe, mat, views_desc, val: float = 0.25, desc="FE"):
 
 def eval(data:io.DataIOBase,
          feature_extractors:Dict[str, extractors.BaseFeatureExtractor],
+         mat: matchers.BaseMatcher = None,
          verbosity:int = 1) -> dict:
     # Run evaluation
     result = {}
     for name, fe in feature_extractors.items():
         precomputed_features = preprocess(data, {name: fe}, verbose=verbosity)
         views_desc = precomputed_features[name]
-        # Norm type
+        
+        # Choose norm type
         normType = cv2.NORM_L2
         if isinstance(fe, extractors.ClassicalFeatureExtractor) \
             and fe.descriptor.algorithm in ["ORB", "BRIEF"]:
             normType = cv2.NORM_HAMMING
-        # Create matcher
-        mat = matchers.BruteForceMatcher(
-            params={
-                "normType": normType,
-                "crossCheck": False},
-            test_ratio=True,
-            test_ratio_th=0.7)
-        result[name] = eval_helper(fe, mat, views_desc, desc=name)
+        
+        # Create matcher or use provided
+        _mat = mat
+        if _mat is None:
+            _mat = matchers.BruteForceMatcher(params={"normType": normType,
+                                                      "crossCheck": False},
+                                              test_ratio=True,
+                                              test_ratio_th=0.7)
+        
+        result[name] = eval_helper(fe, _mat, views_desc, desc=name)
         # Free memory
-        del fe, views_desc, mat
+        del fe, views_desc
     
     return result
