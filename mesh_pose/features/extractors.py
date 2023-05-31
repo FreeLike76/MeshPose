@@ -124,7 +124,6 @@ class ClassicalFeatureExtractor(BaseFeatureExtractor):
             verbosity=json.get("verbosity", 1),
             )
 
-# TODO: Implement this
 class SilkFeatureExtractor(BaseFeatureExtractor):
     """
     Class for learning-based feature extractor, named SILK.
