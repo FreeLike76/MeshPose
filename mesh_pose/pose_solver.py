@@ -77,7 +77,6 @@ class ImagePoseSolver(BasePoseSolver):
         # Run PnP
         return self.run(view_matches[best_i].pts2d, view_matches[best_i].pts3d, **kwargs)
 
-# TODO: video pose solver
 class VideoPoseSolver(ImagePoseSolver):
     """
     Pose Solver for a video sequence. Reuses the previous frame pose as a guess for the current frame.

@@ -35,12 +35,12 @@ class Camera:
 class View:
     def __init__(self, id: int, p_image: Path, camera: Camera = None, image: np.ndarray = None):
         # Public
-        self.id = id
-        self.camera = camera
+        self.id:int = id
+        self.camera:Camera = camera
         
         # Private variables
-        self._p_image = p_image
-        self._image = image
+        self._p_image:Path = p_image
+        self._image:np.ndarray = image
     
     @property
     def image(self) -> np.ndarray:
@@ -87,7 +87,6 @@ class ViewDescription:
     def is_3d(self) -> bool:
         return self.keypoints_3d is not None
     
-    # TODO: this
     def set_keypoints_3d(self, keypoints_3d: np.ndarray, mask: np.ndarray = None):
         if mask is not None:
             self.keypoints_2d = self.keypoints_2d[mask]
@@ -119,29 +118,3 @@ class ViewMatches:
     @property
     def pts3d(self):
         return self.preset.keypoints_3d[self.preset_matches]
-
-#class ARTrajectory:
-#    def __init__(self, init_view: View, init_est_pose: np.ndarray) -> None:
-#        self._init_arkit: View = init_view
-#        self._init_est: np.ndarray = init_est_pose
-#        
-#        init_pose = self._init_arkit.camera.extrinsics
-#        self._delta: np.ndarray = ARTrajectory.delta(init_pose, self._init_est)
-#    
-#    @staticmethod
-#    def delta(arkit_pose: np.ndarray, est_pose: np.ndarray):
-#        return np.linalg.inv(arkit_pose) @ est_pose
-#
-#    def estimate_last(self, last_pose: View, delta: np.ndarray = None):
-#        last_pose = last_pose.camera.extrinsics
-#        delta = self._delta if delta is None else delta
-#        # Long formula
-#        # trj_est_pose = init_pose @ delta @ np.linalg.inv(self._init_est) @ last_pose @ delta
-#        # Same but shorter
-#        trj_est_pose = last_pose @ delta
-#
-#        return trj_est_pose
-#
-#    def __str__(self) -> str:
-#        return f'ARTrajectory for start-view: {self._init_arkit}'
-#
