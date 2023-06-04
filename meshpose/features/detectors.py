@@ -4,7 +4,7 @@ import numpy as np
 from copy import deepcopy
 from loguru import logger
 
-from mesh_pose.utils import Serializable
+from meshpose.utils import Serializable
 
 DEFINED_DETECTORS = {
     "GFTT": cv2.GFTTDetector,

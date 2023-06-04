@@ -8,10 +8,10 @@ from typing import Dict
 from pathlib import Path
 from time import time
 
-from mesh_pose import io, localization, visualization, retrieval
-from mesh_pose.data import QueryView, Camera
-from mesh_pose.features import extractors, matchers
-from mesh_pose import pose_solver
+from meshpose import io, localization, visualization, retrieval
+from meshpose.data import QueryView, Camera
+from meshpose.features import extractors, matchers
+from meshpose import pose_solver
 
 def main(paths: Dict[str, Path], verbosity: int = False):
     # Load data

@@ -7,10 +7,10 @@ from loguru import logger
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from mesh_pose.features.detectors import Detector
-from mesh_pose.features.descriptors import Descriptor
-from mesh_pose.utils import Serializable, tqdm_description
-from mesh_pose.data import PresetView, ViewDescription
+from meshpose.features.detectors import Detector
+from meshpose.features.descriptors import Descriptor
+from meshpose.utils import Serializable, tqdm_description
+from meshpose.data import PresetView, ViewDescription
 
 # Try to import torch and torchvision
 TORCH_AVAILABLE = True

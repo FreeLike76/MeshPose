@@ -5,8 +5,8 @@ import open3d as o3d
 from tqdm import tqdm
 from typing import List, Tuple
 
-from mesh_pose.utils import tqdm_description
-from mesh_pose.data import View, ViewDescription
+from meshpose.utils import tqdm_description
+from meshpose.data import View, ViewDescription
 
 class RayCaster:
     def __init__(self, mesh:o3d.geometry.TriangleMesh = None,

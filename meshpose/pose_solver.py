@@ -5,7 +5,7 @@ from loguru import logger
 
 from typing import Tuple, List
 
-from mesh_pose.data import ViewMatches
+from meshpose.data import ViewMatches
 
 class BasePoseSolver:
     def __init__(self, intrinsics:np.ndarray = None, dist_coeffs:np.ndarray = np.zeros((1, 5)),

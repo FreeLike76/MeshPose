@@ -5,11 +5,11 @@ from loguru import logger
 from typing import List, Tuple
 
 from .image_localization import ImageLocalization
-from mesh_pose import retrieval
-from mesh_pose.data import ViewDescription, QueryView
-from mesh_pose.features.matchers import BaseMatcher
-from mesh_pose.features.extractors import BaseFeatureExtractor
-from mesh_pose.pose_solver import BasePoseSolver
+from meshpose import retrieval
+from meshpose.data import ViewDescription, QueryView
+from meshpose.features.matchers import BaseMatcher
+from meshpose.features.extractors import BaseFeatureExtractor
+from meshpose.pose_solver import BasePoseSolver
 
 class VideoLocalization(ImageLocalization):
     def __init__(self,

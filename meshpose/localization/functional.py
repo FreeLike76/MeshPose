@@ -8,11 +8,11 @@ from typing import List, Dict, Tuple
 
 
 from .image_localization import ImageLocalization
-from mesh_pose import pose_solver, io
-from mesh_pose.raycaster import RayCaster
-from mesh_pose.data import PresetView, ViewDescription
-from mesh_pose.features import extractors, matchers
-from mesh_pose.utils import tqdm_description
+from meshpose import pose_solver, io
+from meshpose.raycaster import RayCaster
+from meshpose.data import PresetView, ViewDescription
+from meshpose.features import extractors, matchers
+from meshpose.utils import tqdm_description
 
 def preprocess(data: io.DataIOBase,
                feature_extractors: Dict[str, extractors.BaseFeatureExtractor],

@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mpose",
+    name="meshpose",
     version="0.1.0",    
     description="Flexible Feature-based Visual Localization Library.",
     url="https://github.com/FreeLike76/CameraLocalization",

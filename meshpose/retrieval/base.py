@@ -1,6 +1,6 @@
 from typing import List
 
-from mesh_pose.data import ViewDescription
+from meshpose.data import ViewDescription
 
 class BaseImageRetrieval:
     def __init__(self, n:float=0.2):

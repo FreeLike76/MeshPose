@@ -3,7 +3,7 @@ from loguru import logger
 from pathlib import Path
 from typing import List
 
-from mesh_pose.data import PresetView, ViewDescription
+from meshpose.data import PresetView, ViewDescription
 
 class DataIOBase:
     def __init__(self, root_p: Path, verbose: bool = False) -> None:

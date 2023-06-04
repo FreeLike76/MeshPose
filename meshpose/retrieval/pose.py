@@ -6,8 +6,8 @@ from loguru import logger
 from typing import List
 
 from .base import BaseImageRetrieval
-from mesh_pose.localization import functional
-from mesh_pose.data import ViewDescription, QueryView
+from meshpose.localization import functional
+from meshpose.data import ViewDescription, QueryView
 
 class PoseRetrieval(BaseImageRetrieval):
     def __init__(self, n:float=0.5):

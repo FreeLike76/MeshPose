@@ -8,8 +8,8 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from mesh_pose import io, localization
-from mesh_pose.features import extractors
+from meshpose import io, localization
+from meshpose.features import extractors
         
 def main(data_p: Path, verbosity: int = 1):
     # Load project

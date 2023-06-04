@@ -5,9 +5,9 @@ from loguru import logger
 import argparse
 from pathlib import Path
 
-from mesh_pose import io
-from mesh_pose.localization.functional import preprocess
-from mesh_pose.features import extractors
+from meshpose import io
+from meshpose.localization.functional import preprocess
+from meshpose.features import extractors
 
 def main(data_p: Path, verbosity: int = False):
     # Load project

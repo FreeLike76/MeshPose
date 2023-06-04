@@ -10,8 +10,8 @@ from loguru import logger
 from typing import List
 
 from .base import BaseImageRetrieval
-from mesh_pose.data import ViewDescription, QueryView
-from mesh_pose.utils import tqdm_description
+from meshpose.data import ViewDescription, QueryView
+from meshpose.utils import tqdm_description
 
 class BovwRetrieval(BaseImageRetrieval):
     def __init__(self, desc_size:int=256, max_iter:int=500, n:float=0.2):

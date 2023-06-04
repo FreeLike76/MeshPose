@@ -7,8 +7,8 @@ from time import time
 import argparse
 from pathlib import Path
 
-from mesh_pose import io
-from mesh_pose import retrieval
+from meshpose import io
+from meshpose import retrieval
         
 def main(data_p: Path, verbosity: int = 1):
     # Load project

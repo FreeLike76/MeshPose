@@ -12,7 +12,7 @@ from loguru import logger
 
 from typing import List
 
-from mesh_pose.data import ViewDescription, ViewMatches
+from meshpose.data import ViewDescription, ViewMatches
 
 class BaseMatcher:
     def __init__(self,

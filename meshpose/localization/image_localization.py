@@ -7,10 +7,10 @@ from typing import List, Tuple
 from time import time
 
 from ..data import ViewDescription, QueryView
-from mesh_pose.features.matchers import BaseMatcher
-from mesh_pose.features.extractors import BaseFeatureExtractor
-from mesh_pose.pose_solver import BasePoseSolver
-from mesh_pose.retrieval import BaseImageRetrieval
+from meshpose.features.matchers import BaseMatcher
+from meshpose.features.extractors import BaseFeatureExtractor
+from meshpose.pose_solver import BasePoseSolver
+from meshpose.retrieval import BaseImageRetrieval
 
 class ImageLocalization:
     def __init__(self,
