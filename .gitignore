@@ -5,3 +5,6 @@ assets/
 misc/
 
 checkpoints/
+
+build
+*.egg-info
