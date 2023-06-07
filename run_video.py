@@ -32,17 +32,10 @@ def main(paths: Dict[str, Path], verbosity: int = False):
     ret.train(views_desc)
     
     # Create feature extractor
-    #fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
     fe = extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=1000, verbosity=verbosity)
     
-    # Create matcher
-    #mat = matchers.BruteForceMatcher(
-    #    params={"normType": cv2.NORM_HAMMING, "crossCheck": False},
-    #    test_ratio=True, test_ratio_th=0.7,
-    #    test_symmetry=False, verbose=False)
-    
-    #mat = matchers.PytorchL2Matcher(device="cuda")
-    mat = matchers.BatchedPytorchL2Matcher(device="cuda")
+    mat = matchers.PytorchL2Matcher(device="cuda")
+    #mat = matchers.BatchedPytorchL2Matcher(device="cuda")
     
     # Create pose solver
     ps = pose_solver.VideoPoseSolver(intrinsics,

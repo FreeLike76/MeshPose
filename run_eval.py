@@ -10,7 +10,7 @@ from pathlib import Path
 
 from meshpose import io, localization
 from meshpose.features import extractors
-        
+
 def main(data_p: Path, verbosity: int = 1):
     # Load project
     data = io.DataIO3DSA(data_p, verbose=verbosity)

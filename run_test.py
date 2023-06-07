@@ -24,25 +24,14 @@ def main(data_p: Path, n:int=25, verbosity: int = False):
     def_h, def_w = views_desc[0].view.image.shape[:2]
     
     # Create feature extractor
-    #fe = extractors.ClassicalFeatureExtractor(detector="ORB", descriptor="ORB", verbosity=1)
-    #fe_norm = cv2.NORM_HAMMING
     fe = extractors.SilkFeatureExtractor(checkpoints_p=Path("checkpoints/coco-rgb-aug.ckpt"), device="cuda:0", top_k=500, verbosity=verbosity)
-    fe_norm = cv2.NORM_L2
-    
-    # Create matcher
-    #mat = matchers.BruteForceMatcher(
-    #    params={"normType": fe_norm, "crossCheck": False},
-    #    test_ratio=True, test_ratio_th=0.7,
-    #    test_symmetry=False, verbose=False)
     
     mat = matchers.PytorchL2Matcher(device="cuda")
-    #mat = matchers.BatchedPytorchL2Matcher(device="cuda")
     
     # Create pose solver
     ps = pose_solver.ImagePoseSolver(def_intrinsics, min_inliers=20, verbose=True)
     
     # Image retrieval
-    #ret = None
     ret = retrieval.DLRetrieval(n=0.25)
     ret.train(views_desc)
     

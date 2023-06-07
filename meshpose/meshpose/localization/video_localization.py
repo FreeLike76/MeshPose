@@ -2,6 +2,7 @@ import numpy as np
 
 from loguru import logger
 
+from time import time
 from typing import List, Tuple
 
 from .image_localization import ImageLocalization
@@ -90,9 +91,11 @@ class VideoLocalization(ImageLocalization):
             ret, rmat, tvec = super().run(query, drop=drop)
         else:
             # Extract features
+            ts = time()
             if self.verbose: logger.info(f"Extracting features from query view.")
             query_desc = self.track_feature_extractor.run_view(query)
-            
+            if self.verbose: logger.info(f"Video feature extraction took {round((time() - ts) * 1000, 2)} ms.")
+        
             # Check if valid
             if not query_desc.is_2d():
                 logger.warning(f"Query view is not valid!")
@@ -108,12 +111,16 @@ class VideoLocalization(ImageLocalization):
             match_views = [self.track_views_desc[i] for i in indices if i != drop]
             
             # Match features
+            ts = time()
             if self.verbose: logger.info(f"Matching descriptors.")
             matches = self.track_matcher.run_views_desc(query_desc, match_views)
-            
+            if self.verbose: logger.info(f"Video matching took {round((time() - ts) * 1000, 2)} ms.")
+        
             # Solve pose
+            ts = time()
             if self.verbose: logger.info(f"Solving pose.")
             ret, rmat, tvec = self.pose_solver.run_matches(matches, track=True)
+            if self.verbose: logger.info(f"Video pose solving took {round((time() - ts) * 1000, 2)} ms.")
         
         # Update tracking status
         self._track = ret

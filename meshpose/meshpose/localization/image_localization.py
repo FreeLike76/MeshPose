@@ -2,9 +2,8 @@ import numpy as np
 
 from loguru import logger
 
-from typing import List, Tuple
-
 from time import time
+from typing import List, Tuple
 
 from ..data import ViewDescription, QueryView
 from meshpose.features.matchers import BaseMatcher

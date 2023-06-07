@@ -29,4 +29,4 @@ class ScenePose:
             cam.transform(pose_inv)
             obj_3d.append(cam)
         
-        o3d.visualization.draw_geometries(obj_3d)
+        o3d.visualization.draw_geometries(obj_3d, window_name="Open3D", width=1280, height=720)
